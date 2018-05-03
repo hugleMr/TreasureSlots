@@ -1,0 +1,48 @@
+
+turtle.png
+size: 1024,256
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+body
+  rotate: false
+  xy: 252, 76
+  size: 211, 159
+  orig: 211, 159
+  offset: 0, 0
+  index: -1
+coin
+  rotate: false
+  xy: 2, 71
+  size: 248, 164
+  orig: 248, 164
+  offset: 0, 0
+  index: -1
+head
+  rotate: false
+  xy: 659, 134
+  size: 119, 101
+  orig: 119, 101
+  offset: 0, 0
+  index: -1
+leg 1
+  rotate: false
+  xy: 2, 2
+  size: 61, 67
+  orig: 61, 67
+  offset: 0, 0
+  index: -1
+leg 2
+  rotate: false
+  xy: 780, 184
+  size: 47, 51
+  orig: 47, 51
+  offset: 0, 0
+  index: -1
+mai
+  rotate: false
+  xy: 465, 102
+  size: 192, 133
+  orig: 192, 133
+  offset: 0, 0
+  index: -1
