@@ -4,6 +4,7 @@
 var HISTORY_SPIN = 1;
 var HISTORY_BREAK_JAR = 2;
 var HISTORY_TOP_USER = 3;
+var GameUtils = require('GameUtils');
 var Treasure = cc.Class({
     extends: cc.Component,
 
@@ -214,17 +215,17 @@ var Treasure = cc.Class({
         item.node.runAction(cc.sequence(cc.delayTime(2), callFunc2, cc.delayTime(1), cc.fadeOut(1), cc.removeSelf(), null));*/
     },
 
-    implementSpinTreasure: function (textEmotionId, listItem,listWin) {
+    implementSpinTreasure: function (textEmotionId, listItem, listWin) {
         this.resetLineResult();
-        cc.log("lst_line_results : xxx ",this.lst_line_result);
+        // cc.log("lst_line_results : xxx ",this.lst_line_result);
         if(listItem.length == 0){
             return;
         }
 
-        console.log("listItem",listItem);
+        // console.log("listItem",listItem);
 
         var list_recent_values = this.list_recent_values;
-        console.log("list_recent_values : ",list_recent_values);
+        // console.log("list_recent_values : ",list_recent_values);
 
         var index_item = 4;
         //this.txt_user_money.string = this.prevMoney;//Common.numberFormatWithCommas(this.prevMoney);
@@ -334,7 +335,8 @@ var Treasure = cc.Class({
         }*/
     },
     getSpin: function() {
-        var listItem = [98,99,100,98,101,101,99,103,98,101,100,99,102,105,104];
+        var listItem = GameUtils.getInstance().getListItem(3 * 5);
+        cc.log("list item:", listItem);
         var lineWin = [1,2,5,6];
         this.implementSpinTreasure(8,listItem,lineWin);
         //this.getTurnTreasureRequest(this.betType + 1);
