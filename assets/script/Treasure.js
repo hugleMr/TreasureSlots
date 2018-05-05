@@ -33,7 +33,8 @@ var Treasure = cc.Class({
         roomIndex: 0,
         betType: 0,
         txt_user_money: cc.Label,
-        money_display : cc.Label
+        money_display : cc.Label,
+        mask : cc.Mask,
 
     },
     statics: {
@@ -183,8 +184,8 @@ var Treasure = cc.Class({
                 var r = Math.floor(Math.random() * 7) + 98;
                 this.list_recent_values.push(r);
                 var item = this.getItem(r - 98);
-                var posX = (j - 2) * item.getContentSize().width*1.05;
-                var posY = (i - 1) * item.getContentSize().height*1.05;
+                var posX = (j - 2) * item.getContentSize().width*1.025;
+                var posY = (i - 1) * item.getContentSize().height*1.02;
                 item.setPositionY(posY);
                 item.setPositionX(posX);
 
@@ -230,7 +231,11 @@ var Treasure = cc.Class({
         var index_item = 4;
         //this.txt_user_money.string = this.prevMoney;//Common.numberFormatWithCommas(this.prevMoney);
 
+        this.mask.alphaThreshold = 1;
+
         for(var i = 0; i < this.list_item.length; i++){
+            this.list_item[i].getComponent("ItemPrefab").item.node.active = true;
+
             var x = parseInt(i/this.number);
             var y = parseInt(i%this.number);
 
@@ -242,8 +247,6 @@ var Treasure = cc.Class({
             }else if(i >= this.list_item.length - index_item*this.number && i < this.list_item.length - 1){
 
                 var index_x = i - this.list_item.length + index_item*this.number;
-                console.log("index : ",index_x);
-                console.log("xxx : ",list_recent_values[index_x]);
                 value = list_recent_values[index_x] - 98;
             }else{
                 value = Math.floor(Math.random() * 7);
@@ -251,13 +254,26 @@ var Treasure = cc.Class({
 
             this.list_item[i].getComponent('ItemPrefab').init(value);
 
-            var posX = (y - 2) * this.list_item[i].getContentSize().width*1.05;
-            var posY = (x - 1) * this.list_item[i].getContentSize().height*1.05;
+            var posX = (y - 2) * this.list_item[i].getContentSize().width*1.025;
+            var posY = (x - 1) * this.list_item[i].getContentSize().height*1.02;
 
             this.list_item[i].stopAllActions();
             this.list_item[i].setPositionX(posX);
             this.list_item[i].setPositionY(posY);
         }
+
+        var lst_time_random = [];
+        var count = 0;
+        var rand = 0;
+        do{
+            rand = Math.floor(Math.random()*5);
+            if(!lst_time_random.includes(rand)){
+                lst_time_random.push(rand);
+                count++;
+            }
+        }while(count < 5);
+
+        console.log("lst_time_random : ",lst_time_random);
 
         for(var i = 0; i < this.list_item.length; i++){
             var x = parseInt(i/this.number);
@@ -265,12 +281,13 @@ var Treasure = cc.Class({
 
             var item = this.list_item[i];
 
-            var h = item.getContentSize().height*1.05;
+            var h = item.getContentSize().height*1.02;
 
-            var move1 = cc.moveBy(1,cc.p(0,-this.stepMove*h*0.25)).easing(cc.easeExponentialIn());
-            var move2 = cc.moveBy(1,cc.p(0,-(this.stepMove*0.75 - index_item)*h)).easing(cc.easeBackOut());
+            //var moveFirst = cc.moveBy(0.1,cc.p(0,h*0.25)).easing(cc.easeExponentialIn());
+            var move1 = cc.moveBy(1,cc.p(0,-this.stepMove*h*0.55)).easing(cc.easeExponentialIn());
+            var move2 = cc.moveBy(1,cc.p(0,-(this.stepMove*0.45 - index_item)*h)).easing(cc.easeBackOut());
 
-            var delay = cc.delayTime(y*0.3);
+            var delay = cc.delayTime(y*0.2);
 
             if(i == this.list_item.length - 1){
                 // khi dừng hiệu ứng
@@ -287,21 +304,18 @@ var Treasure = cc.Class({
 
                     //====== cddd
 
-                    /*for(var i = 0; i < self.list_item.length; i++){
-                        self.list_item[i].getComponent("ItemPrefab").animate();
-                    }*/
+                    self.mask.alphaThreshold = 1;
+
+                    for(var i = 0; i < self.list_item.length; i++){
+                        if(i >= self.list_item.length - index_item*self.number && i < self.list_item.length - self.number){
+                            self.list_item[i].getComponent("ItemPrefab").animate();
+                        }else{
+                            self.list_item[i].getComponent("ItemPrefab").item.node.active = false;
+                        }
+                    }
 
                 });
                 var call_func_display_money = cc.callFunc(function() {
-                    /*self.txt_user_money.string = self.lastMoney;//Common.numberFormatWithCommas(self.lastMoney);
-                    if(textEmotionId === 54) {
-                        // no hu
-                        self.showNoHu();
-                        return;
-                    }
-
-                    self.txt_win_money.string = self.displayChangeMoney;//Common.numberFormatWithCommas(self.displayChangeMoney);
-                    self.implementDisplayChangeMoney(self.displayChangeMoney);*/
                 });
                 item.runAction(cc.sequence(delay,move1,move2,call_func, call_func_display_money));
             }else{
