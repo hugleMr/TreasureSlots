@@ -14,6 +14,8 @@
   "design-resolution-height": 640,
   "design-resolution-width": 960,
   "excluded-modules": [
+    "TiledMap",
+    "Toggle",
     "PageView",
     "PageViewIndicator",
     "VideoPlayer",
