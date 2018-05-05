@@ -1,9 +1,8 @@
 var GameUtils = cc.Class({
     properties: {
-        PAY_TABLE: []
     },
     ctor: function() {
-        this.PAY_TABLE = [[5, 6, 7, 8, 9], //1
+        this.WIN_TABLE = [[5, 6, 7, 8, 9], //1
             [0, 1, 2, 3, 4], //2
             [10, 11, 12, 13, 14], //3
             [5, 6, 2, 8, 9], //4
@@ -23,6 +22,16 @@ var GameUtils = cc.Class({
             [5, 1, 2, 3, 9], //18
             [10, 11, 7, 3, 4], //19
             [0, 1, 7, 13, 14]]; //20
+        this.PAY_TABLE = {
+            98: {4: 3, 5: 8},
+            99: {4: 4, 5: 15},
+            100: {3: 2, 4: 8, 5: 55},
+            101: {3: 3, 4: 20, 5: 200},
+            102: {3: 4, 4: 30, 5: 300},
+            103: {3: 5, 4: 40, 5: 500},
+            104: {5: 1000},
+            105: {3: 10, 4: 100, 5: 1000}
+        };
     },
     statics: {
         _instance: null,
@@ -37,6 +46,7 @@ var GameUtils = cc.Class({
         return Math.floor(Math.random()*(max-min+1)+min);
     },
     getListItem: function(nElement, min, max) {
+        cc.log(this.PAY_TABLE[98]);
         if(min === null || typeof(min) === 'undefined') {
             min = 98;
         }
