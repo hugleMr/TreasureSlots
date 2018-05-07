@@ -165,7 +165,6 @@ var Treasure = cc.Class({
             var line_result = cc.instantiate(this.line_result);
             var component = line_result.getComponent("LineResult");
             component.init(i);
-
             component.show(false);
 
             this.board_null_line.addChild(line_result,2);
