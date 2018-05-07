@@ -46,7 +46,6 @@ var GameUtils = cc.Class({
         return Math.floor(Math.random()*(max-min+1)+min);
     },
     getListItem: function(nElement, min, max) {
-        cc.log(this.PAY_TABLE[98]);
         if(min === null || typeof(min) === 'undefined') {
             min = 98;
         }
@@ -60,6 +59,16 @@ var GameUtils = cc.Class({
         return result;
     },
     getResult: function(listLineSelected, listItem, baseMoney) {
-
+        var resultMoney = 0;
+        var result = [];
+        listLineSelected.forEach(function(element) {
+            var index = element - 1;
+            var ok = this.randomIntFromInterval(0, 1) == 1;
+            if(ok) {
+                result.push(element);
+                resultMoney = resultMoney + baseMoney * this.randomIntFromInterval(3, 5);
+            }
+        });
+        return  {listWin: result, money: resultMoney};
     }
 });
