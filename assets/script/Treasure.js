@@ -216,7 +216,8 @@ var Treasure = cc.Class({
         item.node.runAction(cc.sequence(cc.delayTime(2), callFunc2, cc.delayTime(1), cc.fadeOut(1), cc.removeSelf(), null));*/
     },
 
-    implementSpinTreasure: function (textEmotionId, listItem, listWin) {
+    implementSpinTreasure: function (textEmotionId, listItem, listWin, displayChangeMoney) {
+        //TODO: displayChangeMoney: so tien thang
         this.resetLineResult();
         // cc.log("lst_line_results : xxx ",this.lst_line_result);
         if(listItem.length == 0){
@@ -350,9 +351,12 @@ var Treasure = cc.Class({
     },
     getSpin: function() {
         var listItem = GameUtils.getInstance().getListItem(3 * 5);
+        this.lst_line_selected = [6,2,8,5,1,4,10,7,3,9,16,12,19,14,13,17,18,15,11,20];
         var result = GameUtils.getInstance().getResult(this.lst_line_selected, listItem, 1000);
+        var lineWin = result.listWin;
+        this.displayChangeMoney = result.money;
         cc.log("result:", result);
-        this.implementSpinTreasure(8,listItem,lineWin);
+        this.implementSpinTreasure(8,listItem, lineWin, this.displayChangeMoney);
         //this.getTurnTreasureRequest(this.betType + 1);
     },
     getTurnTreasureRequest: function(turnType) {

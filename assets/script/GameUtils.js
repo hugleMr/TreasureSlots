@@ -61,12 +61,14 @@ var GameUtils = cc.Class({
     getResult: function(listLineSelected, listItem, baseMoney) {
         var resultMoney = 0;
         var result = [];
+        var self = this;
+        cc.log("list line seleected:", listLineSelected);
         listLineSelected.forEach(function(element) {
             var index = element - 1;
-            var ok = this.randomIntFromInterval(0, 1) == 1;
+            var ok = self.randomIntFromInterval(0, 1) == 1;
             if(ok) {
                 result.push(element);
-                resultMoney = resultMoney + baseMoney * this.randomIntFromInterval(3, 5);
+                resultMoney = resultMoney + baseMoney * self.randomIntFromInterval(3, 5);
             }
         });
         return  {listWin: result, money: resultMoney};
