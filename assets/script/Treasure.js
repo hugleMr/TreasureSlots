@@ -350,8 +350,8 @@ var Treasure = cc.Class({
     },
     getSpin: function() {
         var listItem = GameUtils.getInstance().getListItem(3 * 5);
-        cc.log("list item:", listItem);
-        var lineWin = [1,2,5,6];
+        var result = GameUtils.getInstance().getResult(this.lst_line_selected, listItem, 1000);
+        cc.log("result:", result);
         this.implementSpinTreasure(8,listItem,lineWin);
         //this.getTurnTreasureRequest(this.betType + 1);
     },
