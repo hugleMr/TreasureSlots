@@ -23,13 +23,13 @@ var GameUtils = cc.Class({
             [10, 11, 7, 3, 4], //19
             [0, 1, 7, 13, 14]]; //20
         this.PAY_TABLE = {
-            98: {4: 3, 5: 8},
-            99: {4: 4, 5: 15},
+            98: {3: 0, 4: 3, 5: 8},
+            99: {3: 0, 4: 4, 5: 15},
             100: {3: 2, 4: 8, 5: 55},
             101: {3: 3, 4: 20, 5: 200},
             102: {3: 4, 4: 30, 5: 300},
             103: {3: 5, 4: 40, 5: 500},
-            104: {5: 1000},
+            104: {3: 0, 4: 0, 5: 1000},
             105: {3: 10, 4: 100, 5: 1000}
         };
     },
@@ -58,6 +58,25 @@ var GameUtils = cc.Class({
         }
         return result;
     },
+
+    calculateMoneyItem: function(items, baseMoney) {
+        var base = 0;
+        if(items[0] === items[4]) {
+            // x 5
+            if(this.PAY_TABLE[items[0]][5] !== 0)
+                base = 5;
+            return result;
+        } else if(items[0] == items[3] || items[1] == items[4]) {
+            // x4
+            if(this.PAY_TABLE[items[1]][4] !== 0)
+                base = 4;
+        } else if (items[0] == items[2] || items[1] == items[3] || items[2] == items[4]) {
+            // x3
+            if(this.PAY_TABLE[items[2]][3] !== 0)
+                base = 3;
+        }
+        return base;
+    },
     getResult: function(listLineSelected, listItem, baseMoney) {
         var resultMoney = 0;
         var result = [];
@@ -65,10 +84,22 @@ var GameUtils = cc.Class({
         cc.log("list line seleected:", listLineSelected);
         listLineSelected.forEach(function(element) {
             var index = element - 1;
-            var ok = self.randomIntFromInterval(0, 1) == 1;
+
+            // caculate win table
+            var items = self.WIN_TABLE[index].map(function(element) {
+                return listItem[element];
+            });
+
+            items.sort(function(a, b) {
+                return a - b;
+            });
+
+            // we have items array sorted
+            var base = self.calculateMoneyItem(items, baseMoney);
+            var ok = (base > 0);
             if(ok) {
                 result.push(element);
-                resultMoney = resultMoney + baseMoney * self.randomIntFromInterval(3, 5);
+                resultMoney = resultMoney + baseMoney * base;
             }
         });
         return  {listWin: result, money: resultMoney};
