@@ -43,19 +43,7 @@ var Treasure = cc.Class({
         instance: null
     },
     update: function(dt) {
-        //this.onGameEvent();
-        if(this.isComplete && this.list_win.length > 0){
-            // this.deltaTime += dt;
-            // if(this.deltaTime == 1){
-            //     this.countAnimate ++;
-            //
-            //     this.deltaTime = 0;
-            // }
 
-            this.handleListWin(this.list_win);
-            this.isComplete = false;
-
-        }
     },
     onGameEvent: function() {
         var self = this;
@@ -313,10 +301,14 @@ var Treasure = cc.Class({
                 // khi dừng hiệu ứng
                 var call_func = cc.callFunc(function () {
                     // update line_result
-                    cc.audioEngine.playEffect(this.sound_end,false);
+                    //cc.audioEngine.playEffect(this.sound_end,false);
 
-                    this.isComplete = true;
-                    this.list_win = listWin;
+                    for(var i = 0; i < listWin.length; i++){
+                        this.handleListWin(listWin,i,this);
+                        console.log("i : ",listWin[i]);
+                    }
+
+
                     //====== cddd
 
                     /*for(var i = 0; i < self.list_item.length; i++){
@@ -331,6 +323,7 @@ var Treasure = cc.Class({
                 }.bind(this));
 
                 var call_func_display_money = cc.callFunc(function() {
+
                 });
                 item.runAction(cc.sequence(delay,move1,move2,call_func, call_func_display_money));
             }else{
@@ -339,37 +332,34 @@ var Treasure = cc.Class({
         }
     },
 
-
-    handleListWin : function (listWin) {
+    handleListWin : function (listWin,index,self) {
+        if(listWin.length == 0){
+            return;
+        }
         var winTable = GameUtils.getInstance().WIN_TABLE;
-        var self = this;
-
-        for(var i = 0; i < listWin.length; i++){
-            if(listWin[i] < 20){
-                var win = winTable[listWin[i] - 1];
-                for(var j = 0; j < win.length; j++){
-                    var count = this.list_item.length - 4*this.number;
-
-                    var item = self.list_item[win[j] + count].getComponent("ItemPrefab");
-                    // console.log("win[k] + count : ",j,item);
-                    console.log("item : ",item);
-
-                    var callFUnc = cc.callFunc(function () {
-                        console.log("item : ",item);
-                        item.animate();
-                    });
-
-
-                    item.node.runAction(cc.sequence(cc.delayTime(j/10),item.animate()));
-
-                    // this.schedule(function () {
-                    //     self.list_item[win[k] + count].getComponent("ItemPrefab").animate();
-                    //  },t/10 + 1);
-                }
-                //var line = self.lst_line_result[listWin[i] - 1];
-                //line.getComponent("LineResult").show(true);
-                //line.getComponent("LineResult").animate();
+        var delay = index*2;
+        var win = winTable[listWin[index] - 1];
+        console.log("win : ",win.length);
+        for(var j = 0; j < win.length; j++){
+            if(win[i] < 5){
+                win[i] = win[i] + 10;
+            }else if(win[i] > 9){
+                win[i] = win[i] - 10;
             }
+            console.log("winxxx : ",win[j]);
+            var count = this.list_item.length - 4*this.number;
+
+            var item = self.list_item[win[j] + count].getComponent("ItemPrefab");
+
+            var p  = cc.callFunc(function (){
+                this.animate();
+            },item, true);
+
+            var pn  = cc.callFunc(function (){
+                this.reset();
+            },item, true);
+
+            item.node.runAction(cc.sequence(cc.delayTime(delay),p,cc.delayTime(2),pn));
         }
 
     },
