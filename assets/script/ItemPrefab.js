@@ -3,11 +3,11 @@ cc.Class({
 
     properties: {
         item: cc.Sprite,
-        atom : cc.Node,
-        flower : cc.Node,
-        round : cc.Node,
+        atom : cc.ParticleSystem,
+        flower : cc.ParticleSystem,
+        round : cc.ParticleSystem,
         light: cc.ParticleSystem,
-        round_x : cc.Node,
+        round_x : cc.ParticleSystem,
         turtle : cc.Node,
         crown : cc.Node,
         list_frame: [cc.SpriteFrame]
@@ -15,9 +15,14 @@ cc.Class({
     
     init: function (index) {
         this.index = index;
-        
+
         this.item.spriteFrame = this.list_frame[index];
         this.light.stopSystem();
+        this.atom.stopSystem();
+        this.flower.stopSystem();
+        this.round.stopSystem();
+        this.round_x.stopSystem();
+
         this.isRunning = true;
         this.deltaTime = 0;
         this.TIME = 2;
@@ -77,7 +82,7 @@ cc.Class({
 
         switch (this.index){
             case 0:
-                this.flower.active = true;
+                this.flower.node.active = true;
                 break;
             case 1:
                 this.light.node.active = true;
@@ -88,7 +93,7 @@ cc.Class({
                 this.isRunning = true;
                 break;
             case 3:
-                this.round_x.active = true;
+                this.round_x.node.active = true;
                 break;
             case 4:
                 this.light.node.active = true;
@@ -105,21 +110,36 @@ cc.Class({
                 this.crown.getComponent(sp.Skeleton).setAnimation(0, 'animation', true);
                 break;
             case 7:
-                this.atom.active = true;
+                this.atom.node.active = true;
                 break;
             default:
-                this.flower.active = true;
+                this.flower.node.active = true;
                 break;
         }
     },
 
     reset: function () {
         this.isRunning = false;
-        this.flower.active = false;
-        this.atom.active = false;
         this.node.scale = 1;
         this.node.rotation = 0;
+
+        this.item.node.active = true;
+
+        this.flower.node.active = false;
+        this.atom.node.active = false;
+        this.round.node.active = false;
+        this.light.node.active = false;
+        this.round_x.node.active = false;
+
+        this.crown.active = false;
         this.turtle.active = false;
+
+        this.light.stopSystem();
+        this.atom.stopSystem();
+        this.flower.stopSystem();
+        this.round.stopSystem();
+        this.round_x.stopSystem();
+
         this.node.stopAllActions();
     }
 });

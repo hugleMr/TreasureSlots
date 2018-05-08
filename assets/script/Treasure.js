@@ -11,6 +11,8 @@ var Treasure = cc.Class({
     properties: {
         board_view: cc.Mask,
         itemPrefab: cc.Prefab,
+        sound_end : cc.AudioClip,
+        sound_spin : cc.AudioClip,
         btn_select_lines: cc.Prefab,
         line_result: cc.Prefab,
         nohuPrefab: cc.Prefab,
@@ -42,6 +44,18 @@ var Treasure = cc.Class({
     },
     update: function(dt) {
         //this.onGameEvent();
+        if(this.isComplete && this.list_win.length > 0){
+            // this.deltaTime += dt;
+            // if(this.deltaTime == 1){
+            //     this.countAnimate ++;
+            //
+            //     this.deltaTime = 0;
+            // }
+
+            this.handleListWin(this.list_win);
+            this.isComplete = false;
+
+        }
     },
     onGameEvent: function() {
         var self = this;
@@ -102,13 +116,17 @@ var Treasure = cc.Class({
         this.lst_line_result = [];
         this.lst_line_selected = [];
         this.lst_line_selected_sprite = [];
+        this.list_win = [];
 
         this.turnCashValue = [];
         this.indexCash = 0;
         this.prevMoney = 0;
         this.lastMoney = 0;
         this.displayChangeMoney = 0;
-        //this.txt_user_money.string = Common.numberFormatWithCommas(Common.getCash());
+
+        this.isComplete = true;
+        this.countAnimate = 0;
+        this.deltaTime = 0;
 
         cc.log("init");
     },
@@ -219,7 +237,7 @@ var Treasure = cc.Class({
     implementSpinTreasure: function (textEmotionId, listItem, listWin, displayChangeMoney) {
         //TODO: displayChangeMoney: so tien thang
         this.resetLineResult();
-        // cc.log("lst_line_results : xxx ",this.lst_line_result);
+        console.log("listWin : xxx ",listWin);
         if(listItem.length == 0){
             return;
         }
@@ -232,10 +250,11 @@ var Treasure = cc.Class({
         var index_item = 4;
         //this.txt_user_money.string = this.prevMoney;//Common.numberFormatWithCommas(this.prevMoney);
 
-        this.mask.alphaThreshold = 1;
+        cc.audioEngine.stopAll();
+        cc.audioEngine.playEffect(this.sound_spin,false);
 
         for(var i = 0; i < this.list_item.length; i++){
-            this.list_item[i].getComponent("ItemPrefab").item.node.active = true;
+            this.list_item[i].getComponent("ItemPrefab").reset();
 
             var x = parseInt(i/this.number);
             var y = parseInt(i%this.number);
@@ -292,30 +311,25 @@ var Treasure = cc.Class({
 
             if(i == this.list_item.length - 1){
                 // khi dừng hiệu ứng
-                var self = this;
                 var call_func = cc.callFunc(function () {
                     // update line_result
-                    /*for(var i = 0; i < listWin.length; i++){
-                        if(listWin[i] < 20){
-                            var line = self.lst_line_result[listWin[i] - 1];
-                            line.getComponent("LineResult").show(true);
-                            line.getComponent("LineResult").animate();
-                        }
-                    }*/
+                    cc.audioEngine.playEffect(this.sound_end,false);
 
+                    this.isComplete = true;
+                    this.list_win = listWin;
                     //====== cddd
 
-                    self.mask.alphaThreshold = 1;
-
-                    for(var i = 0; i < self.list_item.length; i++){
+                    /*for(var i = 0; i < self.list_item.length; i++){
                         if(i >= self.list_item.length - index_item*self.number && i < self.list_item.length - self.number){
+                            console.log("xxx : ",self.list_item[i].getComponent("ItemPrefab").index);
                             self.list_item[i].getComponent("ItemPrefab").animate();
                         }else{
                             self.list_item[i].getComponent("ItemPrefab").item.node.active = false;
                         }
-                    }
+                    }*/
 
-                });
+                }.bind(this));
+
                 var call_func_display_money = cc.callFunc(function() {
                 });
                 item.runAction(cc.sequence(delay,move1,move2,call_func, call_func_display_money));
@@ -324,6 +338,42 @@ var Treasure = cc.Class({
             }
         }
     },
+
+
+    handleListWin : function (listWin) {
+        var winTable = GameUtils.getInstance().WIN_TABLE;
+        var self = this;
+
+        for(var i = 0; i < listWin.length; i++){
+            if(listWin[i] < 20){
+                var win = winTable[listWin[i] - 1];
+                for(var j = 0; j < win.length; j++){
+                    var count = this.list_item.length - 4*this.number;
+
+                    var item = self.list_item[win[j] + count].getComponent("ItemPrefab");
+                    // console.log("win[k] + count : ",j,item);
+                    console.log("item : ",item);
+
+                    var callFUnc = cc.callFunc(function () {
+                        console.log("item : ",item);
+                        item.animate();
+                    });
+
+
+                    item.node.runAction(cc.sequence(cc.delayTime(j/10),item.animate()));
+
+                    // this.schedule(function () {
+                    //     self.list_item[win[k] + count].getComponent("ItemPrefab").animate();
+                    //  },t/10 + 1);
+                }
+                //var line = self.lst_line_result[listWin[i] - 1];
+                //line.getComponent("LineResult").show(true);
+                //line.getComponent("LineResult").animate();
+            }
+        }
+
+    },
+
     implementDisplayChangeMoney: function(displayChangeMoney) {
         //TODO: hieu ung cong tien su dung bien displayChangeMoney
 
@@ -352,6 +402,7 @@ var Treasure = cc.Class({
     getSpin: function() {
         var listItem = GameUtils.getInstance().getListItem(3 * 5);
         this.lst_line_selected = [6,2,8,5,1,4,10,7,3,9,16,12,19,14,13,17,18,15,11,20];
+        console.log("listItem : ",listItem);
         var result = GameUtils.getInstance().getResult(this.lst_line_selected, listItem, 1000);
         var lineWin = result.listWin;
         this.displayChangeMoney = result.money;
