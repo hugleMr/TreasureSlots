@@ -5,6 +5,8 @@ var HISTORY_SPIN = 1;
 var HISTORY_BREAK_JAR = 2;
 var HISTORY_TOP_USER = 3;
 var GameUtils = require('GameUtils');
+var InstantGame = require('InstantGame');
+
 var Treasure = cc.Class({
     extends: cc.Component,
 
@@ -37,6 +39,7 @@ var Treasure = cc.Class({
         txt_user_money: cc.Label,
         money_display : cc.Label,
         mask : cc.Mask,
+        board_hide : cc.Node,
 
     },
     statics: {
@@ -67,24 +70,25 @@ var Treasure = cc.Class({
         cc.log("enter room response:", this.enterRoomResponse.toObject());*/
     },
 
-    initValue: function (json) {
-        /*var value = JSON.parse(json);
-
-        var valueCash = value.turnValueCash;
-        for(var i = 0; i < valueCash.length; i++){
-            this.turnCashValue.push(valueCash[i]);
-            if(i < this.bets_select.length){
-                var money = Common.convertIntToMoneyView(valueCash[i]);
-                if(i == 0){
-                    this.txt_bet_money.string = money;
-                    this.txt_total_bet_money.string = Common.numberFormatWithCommas(valueCash[i] * this.lst_number.length);
-                }
-                this.bets_select[i].string = money;
+    initValue: function () {
+        for(var i = 0; i < this.bets_select.length; i++){
+            var cash_value = 0;
+            if(i == 0){
+                cash_value = Config.MONEYS.MONEY_1;
+            }else if(i == 1){
+                cash_value = Config.MONEYS.MONEY_2;
+            }else if(i == 2){
+                cash_value = Config.MONEYS.MONEY_3;
             }
-        }
+            this.turnCashValue.push(cash_value);
 
-        this.jarValue = value.jarValue;
-        this.txt_jar_money.string = Common.numberFormatWithCommas(this.jarValue);*/
+            var money = this.convertIntToMoneyView(cash_value);
+            if(i == 0){
+                this.txt_bet_money.string = money;
+                this.txt_total_bet_money.string = this.numberFormatWithCommas(cash_value * this.lst_number.length);
+            }
+            this.bets_select[i].string = money;
+        }
     },
 
     onLoad: function() {
@@ -93,8 +97,17 @@ var Treasure = cc.Class({
 
         this.init();
         this.initItemPool();
-        //this.initMenu();
+        this.initValue();
         this.initFirstItem();
+        InstantGame.getInstance().getInfor(function (response) {
+            console.log("NAME : ",response.name);
+        });
+        var self = this;
+        this.coin = 0;
+        InstantGame.getInstance().getCoin(function (response) {
+            self.coin = response.coin;
+            self.txt_user_money.string = self.coin;
+        });
     },
 
     init: function () {
@@ -137,7 +150,9 @@ var Treasure = cc.Class({
         }else{
             item = cc.instantiate(this.itemPrefab);
         }
-        item.getComponent("ItemPrefab").init(index);
+        item.getComponent("ItemPrefab").init(index,function () {
+            this.board_hide.active = false;
+        });
 
         return item;
     },
@@ -200,6 +215,8 @@ var Treasure = cc.Class({
             }
         }
 
+        this.board_hide.setLocalZOrder(2);
+
         console.log("list_recent_values : ",this.list_recent_values);
     },
     showNoHu: function() {
@@ -236,7 +253,7 @@ var Treasure = cc.Class({
         // console.log("list_recent_values : ",list_recent_values);
 
         var index_item = 4;
-        //this.txt_user_money.string = this.prevMoney;//Common.numberFormatWithCommas(this.prevMoney);
+        //this.txt_user_money.string = this.prevMoney;//this.numberFormatWithCommas(this.prevMoney);
 
         cc.audioEngine.stopAll();
         cc.audioEngine.playEffect(this.sound_spin,false);
@@ -302,29 +319,26 @@ var Treasure = cc.Class({
                 var call_func = cc.callFunc(function () {
                     // update line_result
                     //cc.audioEngine.playEffect(this.sound_end,false);
-
+                    this.board_hide.active = true;
                     for(var i = 0; i < listWin.length; i++){
-                        this.handleListWin(listWin,i,this);
-                        console.log("i : ",listWin[i]);
+                        this.handleListWin(listWin,i);
                     }
 
 
                     //====== cddd
 
-                    /*for(var i = 0; i < self.list_item.length; i++){
-                        if(i >= self.list_item.length - index_item*self.number && i < self.list_item.length - self.number){
-                            console.log("xxx : ",self.list_item[i].getComponent("ItemPrefab").index);
-                            self.list_item[i].getComponent("ItemPrefab").animate();
-                        }else{
-                            self.list_item[i].getComponent("ItemPrefab").item.node.active = false;
-                        }
-                    }*/
+
 
                 }.bind(this));
 
                 var call_func_display_money = cc.callFunc(function() {
-
-                });
+                    console.log("coin change : ",displayChangeMoney);
+                    this.coin += parseInt(displayChangeMoney);
+                    console.log("coin : ",this.coin);
+                    InstantGame.getInstance().updateCoin(this.coin,function (response) {
+                        console.log("response : ",response.coin);
+                    });
+                }.bind(this));
                 item.runAction(cc.sequence(delay,move1,move2,call_func, call_func_display_money));
             }else{
                 item.runAction(cc.sequence(delay,move1,move2));
@@ -332,35 +346,56 @@ var Treasure = cc.Class({
         }
     },
 
-    handleListWin : function (listWin,index,self) {
+    handleListWin : function (listWin,index) {
         if(listWin.length == 0){
             return;
         }
         var winTable = GameUtils.getInstance().WIN_TABLE;
         var delay = index*2;
         var win = winTable[listWin[index] - 1];
+
         console.log("win : ",win.length);
         for(var j = 0; j < win.length; j++){
-            if(win[i] < 5){
+            /*if(win[i] < 5){
                 win[i] = win[i] + 10;
             }else if(win[i] > 9){
                 win[i] = win[i] - 10;
-            }
+            }*/
             console.log("winxxx : ",win[j]);
             var count = this.list_item.length - 4*this.number;
 
-            var item = self.list_item[win[j] + count].getComponent("ItemPrefab");
+            var item = this.list_item[win[j] + count].getComponent("ItemPrefab");
 
             var p  = cc.callFunc(function (){
                 this.animate();
+                this.node.setLocalZOrder(3);
             },item, true);
 
             var pn  = cc.callFunc(function (){
                 this.reset();
+                this.node.setLocalZOrder(1);
             },item, true);
 
-            item.node.runAction(cc.sequence(cc.delayTime(delay),p,cc.delayTime(2),pn));
+            if(index === listWin.length - 1 && j === win.length - 1){
+                console.log("?>>>>>");
+                var final = cc.callFunc(function () {
+                    this.callGame();
+                },item,true);
+
+                item.node.runAction(cc.sequence(cc.delayTime(delay),p,cc.delayTime(2),pn,final));
+            }else{
+                item.node.runAction(cc.sequence(cc.delayTime(delay),p,cc.delayTime(2),pn));
+            }
         }
+
+        /*for(var i = 0; i < this.list_item.length; i++){
+            if(i >= this.list_item.length - index_item*this.number && i < this.list_item.length - this.number){
+                console.log("xxx : ",this.list_item[i].getComponent("ItemPrefab").index);
+                this.list_item[i].getComponent("ItemPrefab").animate();
+            }else{
+                this.list_item[i].getComponent("ItemPrefab").item.node.active = false;
+            }
+        }*/
 
     },
 
@@ -394,7 +429,7 @@ var Treasure = cc.Class({
         this.lst_line_selected = [6,2,8,5,1,4,10,7,3,9,16,12,19,14,13,17,18,15,11,20];
         console.log("listItem : ",listItem);
         var result = GameUtils.getInstance().getResult(this.lst_line_selected, listItem, 1000);
-        var lineWin = result.listWin;
+        var lineWin = [2,3,5,4];//result.listWin;
         this.displayChangeMoney = result.money;
         cc.log("result:", result);
         this.implementSpinTreasure(8,listItem, lineWin, this.displayChangeMoney);
@@ -559,14 +594,14 @@ var Treasure = cc.Class({
     },
 
     chonDongTouchEvent: function () {
-        /*var self = this;
-        Common.showPopup(Config.name.POPUP_SELECT_LINE,function (popup) {
+        var self = this;
+        this.showPopup("PopupSelectLine",function (popup) {
             popup.init(self.lst_line_selected,function (eventType,index) {
 
                 self.onEventLineSelected(eventType,index);
             });
             popup.appear();
-        });*/
+        });
     },
 
     chonCuocTouchEvent: function () {
@@ -575,22 +610,22 @@ var Treasure = cc.Class({
     },
 
     chonMucCuocEvent: function (event,data) {
-        /*if(data < this.bets_select.length && data > -1){
+        if(data < this.bets_select.length && data >= 0){
             this.indexCash = data;
 
-            this.txt_bet_money.string = Common.convertIntToMoneyView(this.turnCashValue[this.indexCash]);
+            this.txt_bet_money.string = this.convertIntToMoneyView(this.turnCashValue[this.indexCash]);
             this.is_bet_select = false;
             this.popup_bet_select.active = this.is_bet_select;
 
             var money_bet = this.turnCashValue[this.indexCash]*this.lst_line_selected.length;
             if(money_bet >= 0){
-                this.txt_total_bet_money.string = Common.numberFormatWithCommas(money_bet);
+                this.txt_total_bet_money.string = this.numberFormatWithCommas(money_bet);
             }
-        }*/
+        }
     },
 
     onEventLineSelected : function (eventType,data) {
-        /*if (eventType == Config.ON_EVENT.EVENT_SELECT_LINE){
+        if (eventType == Config.ON_EVENT.EVENT_SELECT_LINE){
             cc.log("eventType : ",eventType);
 
             cc.log("this.lst_line_selected :",this.lst_line_selected);
@@ -630,11 +665,11 @@ var Treasure = cc.Class({
             }
 
             this.setLineSelected();
-        }*/
+        }
     },
 
     setLineSelected: function () {
-        /*var count = 0;
+        var count = 0;
         for(var i = 0; i < this.lst_line_selected_sprite.length; i++){
             var contain = false;
             for(var j = 0; j < this.lst_line_selected.length; j++){
@@ -657,8 +692,8 @@ var Treasure = cc.Class({
 
         var money_bet = this.turnCashValue[this.indexCash]*this.lst_line_selected.length;
         if(money_bet >= 0){
-            this.txt_total_bet_money.string = Common.numberFormatWithCommas(money_bet);
-        }*/
+            this.txt_total_bet_money.string = this.numberFormatWithCommas(money_bet);
+        }
 
     },
 
@@ -723,5 +758,49 @@ var Treasure = cc.Class({
             popup.appear();
         });*/
 
+    },
+
+    convertIntToMoneyView: function (value) {
+        var i = 0;
+        var end = [ "", "K", "M", "B" ];
+        while (value >= 1000){
+            value = value/1000;
+            i++;
+        }
+        return value + end[i];
+    },
+
+    numberFormatWithCommas: function(value){
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
+
+    closePopup: function (name_popup) {
+        var scene = cc.director.getScene();
+        if(cc.isValid(scene) && cc.isValid(scene.getChildByName(name_popup))){
+            scene.getChildByName(name_popup).destroy();
+        }
+    },
+
+    showPopup: function (name_popup, cb) {
+        var scene = cc.director.getScene();
+        if(cc.isValid(scene) && !cc.isValid(scene.getChildByName(name_popup))){
+            cc.loader.loadRes("prefabs/" + name_popup,function(error, prefab) {
+                if(!error){
+                    var popup = cc.instantiate(prefab);
+                    if(cc.isValid(popup)){
+                        popup.x = cc.director.getWinSize().width / 2;
+                        popup.y = cc.director.getWinSize().height / 2;
+                        if(cb) {
+                            var component = popup.getComponent(name_popup);
+                            component.setNamePopup(name_popup);
+                            cb(component);
+                            scene.addChild(popup,10);
+                        }
+                    }
+                }else{
+                    cc.log("Lỗi load popup,sai tên hoặc thêm popup vào resources.");
+                }
+            })
+        }
     },
 });
