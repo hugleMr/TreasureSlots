@@ -78,8 +78,9 @@ var GameUtils = cc.Class({
         return base;
     },
     getResult: function(listLineSelected, listItem, baseMoney) {
-        var resultMoney = 0;
-        var result = [];
+        var resultMoney = [];
+        var resultElement = [];
+
         var self = this;
         cc.log("list line seleected:", listLineSelected);
         listLineSelected.forEach(function(element) {
@@ -98,10 +99,10 @@ var GameUtils = cc.Class({
             var base = self.calculateMoneyItem(items, baseMoney);
             var ok = (base > 0);
             if(ok) {
-                result.push(element);
-                resultMoney = resultMoney + baseMoney * base;
+                resultElement.push(element);
+                resultMoney.push(base);
             }
         });
-        return  {listWin: result, money: resultMoney};
+        return  {listWin: resultElement, money: resultMoney};
     }
 });
