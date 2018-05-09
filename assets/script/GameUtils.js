@@ -100,7 +100,7 @@ var GameUtils = cc.Class({
             var ok = (base > 0);
             if(ok) {
                 resultElement.push(element);
-                resultMoney.push(base);
+                resultMoney.push(base * baseMoney);
             }
         });
         return  {listWin: resultElement, money: resultMoney};

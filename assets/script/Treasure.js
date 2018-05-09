@@ -243,6 +243,7 @@ var Treasure = cc.Class({
         for(var i = 0; i < listMoney.length; i++) {
             displayChangeMoney = displayChangeMoney + listMoney[i];
         }
+        cc.log("display change money:", displayChangeMoney);
         //TODO: displayChangeMoney: so tien thang
         this.resetLineResult();
         console.log("listWin : xxx ",listWin);
