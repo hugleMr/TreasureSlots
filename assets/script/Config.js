@@ -8,6 +8,12 @@ var Config = {
         LOADING: 103,
     },
 
+    MONEYS : {
+        MONEY_1 : 1000,
+        MONEY_2 : 10000,
+        MONEY_3 : 100000,
+    },
+
     name : {
         POPUP_SELECT_LINE : "PopupSelectLine"
     },

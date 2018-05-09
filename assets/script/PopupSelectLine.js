@@ -1,5 +1,5 @@
 cc.Class({
-    extends: cc.Component,
+    extends: require("Popup"),
 
     properties: {
         item : cc.Prefab,

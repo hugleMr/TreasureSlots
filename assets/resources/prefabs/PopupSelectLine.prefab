@@ -462,8 +462,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 780,
-      "height": 360
+      "width": 1000,
+      "height": 450
     },
     "_rotationX": 0,
     "_rotationY": 0,
@@ -471,8 +471,8 @@
     "_scaleY": 1,
     "_position": {
       "__type__": "cc.Vec2",
-      "x": -6,
-      "y": 0
+      "x": 0,
+      "y": 13
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -520,8 +520,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 780,
-      "height": 360
+      "width": 1000,
+      "height": 450
     },
     "_rotationX": 0,
     "_rotationY": 0,
@@ -570,8 +570,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 780,
-      "height": 360
+      "width": 1000,
+      "height": 450
     },
     "_rotationX": 0,
     "_rotationY": 0,
@@ -580,7 +580,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": 0,
-      "y": 180
+      "y": 225
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -710,7 +710,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": -276,
-      "y": -241
+      "y": -258
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -960,7 +960,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": -92,
-      "y": -242
+      "y": -259
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -1210,7 +1210,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": 91,
-      "y": -242
+      "y": -259
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -1460,7 +1460,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": 274,
-      "y": -242
+      "y": -259
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -1703,7 +1703,7 @@
     "_position": {
       "__type__": "cc.Vec2",
       "x": 0,
-      "y": 255
+      "y": 288
     },
     "_skewX": 0,
     "_skewY": 0,
@@ -1818,6 +1818,13 @@
       "__id__": 1
     },
     "_enabled": true,
+    "bg_dark": {
+      "__id__": 3
+    },
+    "background": {
+      "__id__": 55
+    },
+    "exit": null,
     "item": {
       "__uuid__": "5af4ad2c-b0d6-4507-8178-e92713375f5b"
     },

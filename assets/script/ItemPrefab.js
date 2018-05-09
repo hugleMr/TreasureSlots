@@ -13,8 +13,9 @@ cc.Class({
         list_frame: [cc.SpriteFrame]
     },
     
-    init: function (index) {
+    init: function (index,callBack) {
         this.index = index;
+        this.callBack = callBack;
 
         this.item.spriteFrame = this.list_frame[index];
         this.light.stopSystem();
@@ -26,6 +27,10 @@ cc.Class({
         this.isRunning = true;
         this.deltaTime = 0;
         this.TIME = 2;
+    },
+
+    callGame : function () {
+        this.callBack;
     },
 
     rectangleMove: function (index) {
