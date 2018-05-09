@@ -4304,7 +4304,9 @@
     "btn_select_lines": {
       "__uuid__": "95c82ec8-b87c-463a-905d-c0f96d7e9a4c"
     },
-    "line_result": null,
+    "line_result": {
+      "__uuid__": "0a8d8e34-012e-4d05-a06f-f1d1aa73b939"
+    },
     "nohuPrefab": null,
     "board_null_line": {
       "__id__": 9

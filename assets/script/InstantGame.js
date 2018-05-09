@@ -37,6 +37,35 @@ var InstantGame = cc.Class({
         });
     },
 
+    updateCoin: function (coin) {
+        FBInstant.player.setDataAsync({
+            'coin':coin
+        })
+            .then(FBInstant.player.flushDataAsync)
+            .then(function() {
+                console.log('Data persisted to FB!');
+            });
+    },
+
+    getCoin: function (callback) {
+        var self = this;
+        FBInstant.player.getDataAsync(['coin'])
+            .then(function(data){
+                if (typeof data['coin'] !== 'undefined') {
+                    var coin_value  = data['coin'];
+                    typeof callback === 'function' && callback({
+                        coin: coin_value
+                    });
+                }else{
+                    var coin_value = 50000;
+                    typeof callback === 'function' && callback({
+                        coin: coin_value
+                    });
+                    self.updateCoin(coin_value);
+                }
+            });
+    },
+
     loadInterstitialAd: function() {
         if(!this.enable){
             return;
@@ -126,7 +155,7 @@ var InstantGame = cc.Class({
         }
     },
 
-    updateCoin : function (score,callback) {
+    updateCoinMax : function (score,callback) {
         if(!this.enable){
             return;
         }
@@ -147,7 +176,7 @@ var InstantGame = cc.Class({
         });
     },
 
-    getCoin: function (callback) {
+    getCoinMax: function (callback) {
         if(!this.enable){
             return;
         }

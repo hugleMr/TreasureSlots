@@ -98,6 +98,7 @@ var Treasure = cc.Class({
         this.init();
         this.initItemPool();
         this.initValue();
+        this.initMenu();
         this.initFirstItem();
         InstantGame.getInstance().getInfor(function (response) {
             console.log("NAME : ",response.name);
@@ -106,7 +107,7 @@ var Treasure = cc.Class({
         this.coin = 0;
         InstantGame.getInstance().getCoin(function (response) {
             self.coin = response.coin;
-            self.txt_user_money.string = self.coin;
+            self.updateMoney();
         });
     },
 
@@ -338,10 +339,10 @@ var Treasure = cc.Class({
                 var call_func_display_money = cc.callFunc(function() {
                     console.log("coin change : ",displayChangeMoney);
                     this.coin += parseInt(displayChangeMoney);
+
+                    this.updateMoney();
                     console.log("coin : ",this.coin);
-                    InstantGame.getInstance().updateCoin(this.coin,function (response) {
-                        console.log("response : ",response.coin);
-                    });
+                    InstantGame.getInstance().updateCoin(this.coin);
                 }.bind(this));
                 item.runAction(cc.sequence(delay,move1,move2,call_func, call_func_display_money));
             }else{
@@ -437,8 +438,12 @@ var Treasure = cc.Class({
         var lineWinMoney = result.money;
         cc.log("result:", result);
         this.implementSpinTreasure(8,listItem, lineWin, lineWinMoney);
-        //this.getTurnTreasureRequest(this.betType + 1);
     },
+
+    updateMoney: function () {
+        this.txt_user_money.string = this.numberFormatWithCommas(this.coin);
+    },
+
     getTurnTreasureRequest: function(turnType) {
         /*var entries = [];
 
