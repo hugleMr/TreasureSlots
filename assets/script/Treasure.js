@@ -30,24 +30,22 @@ var Treasure = cc.Class({
         isFinishSpin: true,
         isRun: false,
         isRequestJar: false,
+        txt_user_money: cc.Label,
+        money_display : cc.Label,
+        mask : cc.Mask,
+        board_hide : cc.Node,
         stepMove : 21,
         number : 5,
         time_move: 3,
         jarValue: 0,
         roomIndex: 0,
         betType: 0,
-        txt_user_money: cc.Label,
-        money_display : cc.Label,
-        mask : cc.Mask,
-        board_hide : cc.Node,
 
     },
     statics: {
         instance: null
     },
-    update: function(dt) {
 
-    },
     onGameEvent: function() {
         var self = this;
         /*NetworkManager.checkEvent(function(buffer) {
@@ -96,9 +94,9 @@ var Treasure = cc.Class({
         this.schedule(this.requestJar, 5);
 
         this.init();
+        this.initMenu();
         this.initItemPool();
         this.initValue();
-        this.initMenu();
         this.initFirstItem();
         InstantGame.getInstance().getInfor(function (response) {
             console.log("NAME : ",response.name);
@@ -109,6 +107,9 @@ var Treasure = cc.Class({
             self.coin = response.coin;
             self.updateMoney();
         });
+
+        this.coin = 50000;
+        this.updateMoney();
     },
 
     init: function () {
@@ -119,14 +120,17 @@ var Treasure = cc.Class({
         this.lst_line_selected = [];
         this.lst_line_selected_sprite = [];
         this.list_win = [];
+        this.list_money = [];
 
         this.turnCashValue = [];
         this.indexCash = 0;
         this.prevMoney = 0;
         this.lastMoney = 0;
         this.displayChangeMoney = 0;
+        this.moneyBet = 0;
 
         this.isComplete = true;
+        this.isRunAnim = false;
         this.countAnimate = 0;
         this.deltaTime = 0;
 
@@ -151,15 +155,15 @@ var Treasure = cc.Class({
         }else{
             item = cc.instantiate(this.itemPrefab);
         }
+        var self = this;
         item.getComponent("ItemPrefab").init(index,function () {
-            this.board_hide.active = false;
+            self.board_hide.active = false;
         });
 
         return item;
     },
 
     initMenu: function () {
-        this.lst_number = [6,2,8,5,1,4,10,7,3,9,16,12,19,14,13,17,18,15,11,20];
         this.lst_line_selected = this.lst_number;
 
         for (var i = 0; i < 20; i++){
@@ -180,7 +184,7 @@ var Treasure = cc.Class({
             var line_number = cc.instantiate(this.btn_select_lines);
             var component = line_number.getComponent("ButtonSelectLines");
             component.initNumber(this.lst_number[i]);
-            // component.initHighLight(true);
+            //component.initHighLight(true);
 
             var size_line = line_number.getContentSize();
             if (i == 0) {
@@ -239,7 +243,79 @@ var Treasure = cc.Class({
         item.node.runAction(cc.sequence(cc.delayTime(2), callFunc2, cc.delayTime(1), cc.fadeOut(1), cc.removeSelf(), null));*/
     },
 
+    update: function(dt) {
+        if(this.isComplete && this.isRunning){
+            this.deltaTime -= dt;
+            if(this.deltaTime < 0){
+                this.deltaTime = 3;
+                if(this.countAnimate > this.list_win.length - 1){
+                    this.isComplete = false;
+                    this.deltaTime = 0;
+                    this.countAnimate = 0;
+
+                    return;
+                }
+                this.handleListWin(this.list_win,this.countAnimate,this.list_money[this.countAnimate]);
+
+                this.countAnimate += 1;
+            }
+        }
+    },
+
+    handleListWin : function (listWin,index,money) {
+        if(listWin.length == 0){
+            return;
+        }
+
+        this.coin -= money;
+        this.updateMoney();
+        console.log("money xxx : ",money);
+
+        const index_x = index;
+        const winTable = GameUtils.getInstance().WIN_TABLE;
+        //const delay = index_x*2;
+        const win = winTable[listWin[index] - 1];
+
+        console.log("win win win: ",win);
+
+        for(var j = 0; j < win.length; j++){
+            /*if(win[i] < 5){
+                win[i] = win[i] + 10;
+            }else if(win[i] > 9){
+                win[i] = win[i] - 10;
+            }*/
+
+            const count = this.list_item.length - 4*this.number;
+
+            const k = j;
+            console.log("?>>>>>",k);
+            const item = this.list_item[win[k] + count].getComponent("ItemPrefab");
+
+            const p  = cc.callFunc(function (){
+                item.animate();
+                item.node.setLocalZOrder(3);
+            }.bind(this));
+
+            const pn  = cc.callFunc(function (){
+                item.reset();
+                item.node.setLocalZOrder(1);
+            }.bind(this));
+
+            if(index === listWin.length - 1 && j === win.length - 1){
+                console.log("?>>>>>");
+                const final = cc.callFunc(function () {
+                    this.board_hide.active = false;
+                }.bind(this));
+
+                item.node.runAction(cc.sequence(p,cc.delayTime(2.9),pn,final));
+            }else{
+                item.node.runAction(cc.sequence(p,cc.delayTime(2.9),pn));
+            }
+        }
+    },
+
     implementSpinTreasure: function (textEmotionId, listItem, listWin, listMoney) {
+        this.isRunning = true;
         var displayChangeMoney = 0;
         for(var i = 0; i < listMoney.length; i++) {
             displayChangeMoney = displayChangeMoney + listMoney[i];
@@ -313,95 +389,43 @@ var Treasure = cc.Class({
 
             var h = item.getContentSize().height*1.02;
 
-            //var moveFirst = cc.moveBy(0.1,cc.p(0,h*0.25)).easing(cc.easeExponentialIn());
             var move1 = cc.moveBy(1,cc.p(0,-this.stepMove*h*0.55)).easing(cc.easeExponentialIn());
             var move2 = cc.moveBy(1,cc.p(0,-(this.stepMove*0.45 - index_item)*h)).easing(cc.easeBackOut());
 
             var delay = cc.delayTime(y*0.2);
 
-            if(i == this.list_item.length - 1){
-                // khi dừng hiệu ứng
-                var call_func = cc.callFunc(function () {
-                    // update line_result
-                    //cc.audioEngine.playEffect(this.sound_end,false);
-                    this.board_hide.active = true;
-                    for(var i = 0; i < listWin.length; i++){
-                        this.handleListWin(listWin,i);
-                    }
+            var call_func_finish = cc.callFunc(function () {
+                this.isRunning = false;
+            }.bind(this));
 
+            if(i == this.list_item.length - 1 && listWin.length > 0){
+                    // khi dừng hiệu ứng
+                    var call_func = cc.callFunc(function () {
+                        // update line_result
+                        //cc.audioEngine.playEffect(this.sound_end,false);
+                        this.board_hide.active = true;
 
-                    //====== cddd
+                        this.list_win = listWin;
+                        this.list_money = listMoney;
+                        this.deltaTime = 0;
+                        this.isComplete = true;
+                        this.countAnimate = 0;
 
+                    }.bind(this));
 
+                    var call_func_display_money = cc.callFunc(function() {
+                        this.coin += this.moneyBet* listWin;
 
-                }.bind(this));
+                        this.updateMoney();
+                        console.log("coin : ",this.coin);
+                        InstantGame.getInstance().updateCoin(this.coin);
+                    }.bind(this));
 
-                var call_func_display_money = cc.callFunc(function() {
-                    console.log("coin change : ",displayChangeMoney);
-                    this.coin += parseInt(displayChangeMoney);
-
-                    this.updateMoney();
-                    console.log("coin : ",this.coin);
-                    InstantGame.getInstance().updateCoin(this.coin);
-                }.bind(this));
-                item.runAction(cc.sequence(delay,move1,move2,call_func, call_func_display_money));
+                    item.runAction(cc.sequence(delay,move1,move2,call_func_finish,call_func,call_func_display_money));
             }else{
-                item.runAction(cc.sequence(delay,move1,move2));
+                item.runAction(cc.sequence(delay,move1,move2,call_func_finish));
             }
         }
-    },
-
-    handleListWin : function (listWin,index) {
-        if(listWin.length == 0){
-            return;
-        }
-        var winTable = GameUtils.getInstance().WIN_TABLE;
-        var delay = index*2;
-        var win = winTable[listWin[index] - 1];
-
-        console.log("win : ",win.length);
-        for(var j = 0; j < win.length; j++){
-            /*if(win[i] < 5){
-                win[i] = win[i] + 10;
-            }else if(win[i] > 9){
-                win[i] = win[i] - 10;
-            }*/
-            console.log("winxxx : ",win[j]);
-            var count = this.list_item.length - 4*this.number;
-
-            var item = this.list_item[win[j] + count].getComponent("ItemPrefab");
-
-            var p  = cc.callFunc(function (){
-                this.animate();
-                this.node.setLocalZOrder(3);
-            },item, true);
-
-            var pn  = cc.callFunc(function (){
-                this.reset();
-                this.node.setLocalZOrder(1);
-            },item, true);
-
-            if(index === listWin.length - 1 && j === win.length - 1){
-                console.log("?>>>>>");
-                var final = cc.callFunc(function () {
-                    this.callGame();
-                },item,true);
-
-                item.node.runAction(cc.sequence(cc.delayTime(delay),p,cc.delayTime(2),pn,final));
-            }else{
-                item.node.runAction(cc.sequence(cc.delayTime(delay),p,cc.delayTime(2),pn));
-            }
-        }
-
-        /*for(var i = 0; i < this.list_item.length; i++){
-            if(i >= this.list_item.length - index_item*this.number && i < this.list_item.length - this.number){
-                console.log("xxx : ",this.list_item[i].getComponent("ItemPrefab").index);
-                this.list_item[i].getComponent("ItemPrefab").animate();
-            }else{
-                this.list_item[i].getComponent("ItemPrefab").item.node.active = false;
-            }
-        }*/
-
     },
 
     implementDisplayChangeMoney: function(displayChangeMoney) {
@@ -431,12 +455,15 @@ var Treasure = cc.Class({
     },
     getSpin: function() {
         var listItem = GameUtils.getInstance().getListItem(3 * 5);
-        this.lst_line_selected = [6,2,8,5,1,4,10,7,3,9,16,12,19,14,13,17,18,15,11,20];
         console.log("listItem : ",listItem);
-        var result = GameUtils.getInstance().getResult(this.lst_line_selected, listItem, 1000);
+        var result = GameUtils.getInstance().getResult(this.lst_line_selected, listItem, this.moneyBet);
         var lineWin = result.listWin;
         var lineWinMoney = result.money;
         cc.log("result:", result);
+
+        this.coin -= this.moneyBet*this.lst_line_selected.length;
+        this.updateMoney();
+
         this.implementSpinTreasure(8,listItem, lineWin, lineWinMoney);
     },
 
@@ -626,9 +653,9 @@ var Treasure = cc.Class({
             this.is_bet_select = false;
             this.popup_bet_select.active = this.is_bet_select;
 
-            var money_bet = this.turnCashValue[this.indexCash]*this.lst_line_selected.length;
-            if(money_bet >= 0){
-                this.txt_total_bet_money.string = this.numberFormatWithCommas(money_bet);
+            this.moneyBet = this.turnCashValue[this.indexCash]*this.lst_line_selected.length;
+            if(this.moneyBet >= 0){
+                this.txt_total_bet_money.string = this.numberFormatWithCommas(this.moneyBet);
             }
         }
     },
@@ -699,9 +726,9 @@ var Treasure = cc.Class({
 
         this.txt_total_line.string = count;
 
-        var money_bet = this.turnCashValue[this.indexCash]*this.lst_line_selected.length;
-        if(money_bet >= 0){
-            this.txt_total_bet_money.string = this.numberFormatWithCommas(money_bet);
+        this.moneyBet = this.turnCashValue[this.indexCash]*this.lst_line_selected.length;
+        if(this.moneyBet >= 0){
+            this.txt_total_bet_money.string = this.numberFormatWithCommas(this.moneyBet);
         }
 
     },

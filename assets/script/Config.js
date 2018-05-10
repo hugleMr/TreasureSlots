@@ -9,9 +9,9 @@ var Config = {
     },
 
     MONEYS : {
-        MONEY_1 : 1000,
-        MONEY_2 : 10000,
-        MONEY_3 : 100000,
+        MONEY_1 : 100,
+        MONEY_2 : 1000,
+        MONEY_3 : 10000,
     },
 
     name : {

@@ -38,6 +38,9 @@ var InstantGame = cc.Class({
     },
 
     updateCoin: function (coin) {
+        if(!this.enable){
+            return;
+        }
         FBInstant.player.setDataAsync({
             'coin':coin
         })
@@ -48,6 +51,9 @@ var InstantGame = cc.Class({
     },
 
     getCoin: function (callback) {
+        if(!this.enable){
+            return;
+        }
         var self = this;
         FBInstant.player.getDataAsync(['coin'])
             .then(function(data){

@@ -92,10 +92,12 @@ cc.Class({
             case 1:
                 this.light.node.active = true;
                 this.isRunning = true;
+                this.deltaTime = 0;
                 break;
             case 2:
                 this.light.node.active = true;
                 this.isRunning = true;
+                this.deltaTime = 0;
                 break;
             case 3:
                 this.round_x.node.active = true;
@@ -103,6 +105,7 @@ cc.Class({
             case 4:
                 this.light.node.active = true;
                 this.isRunning = true;
+                this.deltaTime = 0;
                 break;
             case 5:
                 this.item.node.active = false;
