@@ -68,41 +68,21 @@ var Treasure = cc.Class({
         cc.log("enter room response:", this.enterRoomResponse.toObject());*/
     },
 
-    initValue: function () {
-        for(var i = 0; i < this.bets_select.length; i++){
-            var cash_value = 0;
-            if(i == 0){
-                cash_value = Config.MONEYS.MONEY_1;
-            }else if(i == 1){
-                cash_value = Config.MONEYS.MONEY_2;
-            }else if(i == 2){
-                cash_value = Config.MONEYS.MONEY_3;
-            }
-            this.turnCashValue.push(cash_value);
-
-            var money = this.convertIntToMoneyView(cash_value);
-            if(i == 0){
-                this.txt_bet_money.string = money;
-                this.txt_total_bet_money.string = this.numberFormatWithCommas(cash_value * this.lst_number.length);
-            }
-            this.bets_select[i].string = money;
-        }
-    },
-
     onLoad: function() {
         Treasure.instance = this;
         this.schedule(this.requestJar, 5);
 
         this.init();
-        this.initMenu();
         this.initItemPool();
         this.initValue();
+        this.initMenu();
         this.initFirstItem();
         InstantGame.getInstance().getInfor(function (response) {
             console.log("NAME : ",response.name);
         });
         var self = this;
         this.coin = 0;
+        this.win_coin = 0;
         InstantGame.getInstance().getCoin(function (response) {
             self.coin = response.coin;
             self.updateMoney();
@@ -129,13 +109,38 @@ var Treasure = cc.Class({
         this.displayChangeMoney = 0;
         this.moneyBet = 0;
 
-        this.isComplete = true;
+        this.countInterstitial = 0;
+
+        this.isComplete = false;
         this.isRunAnim = false;
+        this.isRunning = false;
         this.countAnimate = 0;
         this.deltaTime = 0;
 
         cc.log("init");
     },
+
+    initValue: function () {
+        for(var i = 0; i < this.bets_select.length; i++){
+            var cash_value = 0;
+            if(i == 0){
+                cash_value = Config.MONEYS.MONEY_1;
+            }else if(i == 1){
+                cash_value = Config.MONEYS.MONEY_2;
+            }else if(i == 2){
+                cash_value = Config.MONEYS.MONEY_3;
+            }
+            this.turnCashValue.push(cash_value);
+
+            var money = this.convertIntToMoneyView(cash_value);
+            if(i == 0){
+                this.txt_bet_money.string = money;
+                this.txt_total_bet_money.string = this.numberFormatWithCommas(cash_value * this.lst_number.length);
+            }
+            this.bets_select[i].string = money;
+        }
+    },
+
     getAutoSpin: function() {
         //Common.showToast("Chức năng này đang được cập nhật");
     },
@@ -244,7 +249,7 @@ var Treasure = cc.Class({
     },
 
     update: function(dt) {
-        if(this.isComplete && this.isRunning){
+        if(this.isComplete){
             this.deltaTime -= dt;
             if(this.deltaTime < 0){
                 this.deltaTime = 3;
@@ -252,6 +257,11 @@ var Treasure = cc.Class({
                     this.isComplete = false;
                     this.deltaTime = 0;
                     this.countAnimate = 0;
+
+                    if(this.countInterstitial === 4){
+                        this.countInterstitial = 0;
+                        InstantGame.getInstance().showInterstitialAd();
+                    }
 
                     return;
                 }
@@ -267,11 +277,12 @@ var Treasure = cc.Class({
             return;
         }
 
-        this.coin -= money;
-        this.updateMoney();
-        console.log("money xxx : ",money);
+        var money_view = this.coin + money;
+        this.updateMoneyView(money_view);
 
-        const index_x = index;
+        this.win_coin += money;
+        this.updateWinMoney();
+
         const winTable = GameUtils.getInstance().WIN_TABLE;
         //const delay = index_x*2;
         const win = winTable[listWin[index] - 1];
@@ -316,6 +327,10 @@ var Treasure = cc.Class({
 
     implementSpinTreasure: function (textEmotionId, listItem, listWin, listMoney) {
         this.isRunning = true;
+        this.isComplete = false;
+        this.win_coin = 0;
+        this.updateWinMoney();
+
         var displayChangeMoney = 0;
         for(var i = 0; i < listMoney.length; i++) {
             displayChangeMoney = displayChangeMoney + listMoney[i];
@@ -394,10 +409,6 @@ var Treasure = cc.Class({
 
             var delay = cc.delayTime(y*0.2);
 
-            var call_func_finish = cc.callFunc(function () {
-                this.isRunning = false;
-            }.bind(this));
-
             if(i == this.list_item.length - 1 && listWin.length > 0){
                     // khi dừng hiệu ứng
                     var call_func = cc.callFunc(function () {
@@ -410,20 +421,24 @@ var Treasure = cc.Class({
                         this.deltaTime = 0;
                         this.isComplete = true;
                         this.countAnimate = 0;
+                        this.isRunning = false;
 
                     }.bind(this));
 
                     var call_func_display_money = cc.callFunc(function() {
-                        this.coin += this.moneyBet* listWin;
+                        //this.coin += this.moneyBet* listWin;
 
-                        this.updateMoney();
-                        console.log("coin : ",this.coin);
-                        InstantGame.getInstance().updateCoin(this.coin);
+                        //this.updateMoney();
+                        //console.log("coin : ",this.coin);
+                        //InstantGame.getInstance().updateCoin(this.coin);
                     }.bind(this));
 
-                    item.runAction(cc.sequence(delay,move1,move2,call_func_finish,call_func,call_func_display_money));
+                    item.runAction(cc.sequence(delay,move1,move2,call_func));
             }else{
-                item.runAction(cc.sequence(delay,move1,move2,call_func_finish));
+                var call_func = cc.callFunc(function () {
+                    this.isRunning = false;
+                }.bind(this));
+                item.runAction(cc.sequence(delay,move1,move2,call_func));
             }
         }
     },
@@ -454,6 +469,12 @@ var Treasure = cc.Class({
         }*/
     },
     getSpin: function() {
+        if(this.isRunning){
+            return;
+        }
+
+        this.countInterstitial ++;
+
         var listItem = GameUtils.getInstance().getListItem(3 * 5);
         console.log("listItem : ",listItem);
         var result = GameUtils.getInstance().getResult(this.lst_line_selected, listItem, this.moneyBet);
@@ -469,6 +490,14 @@ var Treasure = cc.Class({
 
     updateMoney: function () {
         this.txt_user_money.string = this.numberFormatWithCommas(this.coin);
+    },
+
+    updateMoneyView: function (coin) {
+        this.txt_user_money.string = this.numberFormatWithCommas(coin);
+    },
+
+    updateWinMoney: function () {
+        this.txt_win_money.string = this.numberFormatWithCommas(this.win_coin === 0 ? "" : this.win_coin);
     },
 
     getTurnTreasureRequest: function(turnType) {
@@ -629,6 +658,13 @@ var Treasure = cc.Class({
         }*/
     },
 
+    showRewardVideo : function () {
+        var self = this;
+        InstantGame.getInstance().showRewardVideo(function () {
+            self.coin += Config.ADS_COIN.REWARD;
+        });
+    },
+
     chonDongTouchEvent: function () {
         var self = this;
         this.showPopup("PopupSelectLine",function (popup) {
@@ -640,9 +676,25 @@ var Treasure = cc.Class({
         });
     },
 
+    showPopupPayTable: function () {
+        this.showPopup("PopupPayInfo",function (popup) {
+            popup.appear();
+        });
+    },
+
+    showPopupShop: function () {
+        this.showPopup("PopupIAP",function (popup) {
+            popup.appear();
+        });
+    },
+
     chonCuocTouchEvent: function () {
         this.is_bet_select = !this.is_bet_select;
+        this.popup_bet_select.scale = 0.2;
         this.popup_bet_select.active = this.is_bet_select;
+        if(this.is_bet_select){
+            this.popup_bet_select.runAction(cc.scaleTo(0.2,1.0).easing(cc.easeBackOut()));
+        }
     },
 
     chonMucCuocEvent: function (event,data) {
@@ -726,9 +778,9 @@ var Treasure = cc.Class({
 
         this.txt_total_line.string = count;
 
-        this.moneyBet = this.turnCashValue[this.indexCash]*this.lst_line_selected.length;
+        this.moneyBet = this.turnCashValue[this.indexCash];
         if(this.moneyBet >= 0){
-            this.txt_total_bet_money.string = this.numberFormatWithCommas(this.moneyBet);
+            this.txt_total_bet_money.string = this.numberFormatWithCommas(this.moneyBet*count);
         }
 
     },

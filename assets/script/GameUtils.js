@@ -65,7 +65,7 @@ var GameUtils = cc.Class({
             // x 5
             if(this.PAY_TABLE[items[0]][5] !== 0)
                 base = 5;
-            return result;
+            //return result;
         } else if(items[0] == items[3] || items[1] == items[4]) {
             // x4
             if(this.PAY_TABLE[items[1]][4] !== 0)
