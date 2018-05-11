@@ -8,6 +8,11 @@ var Config = {
         LOADING: 103,
     },
 
+    ADS_COIN : {
+        INTERSTITIAL : 1000,
+        REWARD : 6000,
+    },
+
     MONEYS : {
         MONEY_1 : 100,
         MONEY_2 : 1000,
@@ -15,7 +20,8 @@ var Config = {
     },
 
     name : {
-        POPUP_SELECT_LINE : "PopupSelectLine"
+        POPUP_SELECT_LINE : "PopupSelectLine",
+        POPUP_PAY_INFO : "PopupPayInfo",
     },
 
     ON_EVENT: {

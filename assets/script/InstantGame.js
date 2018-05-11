@@ -10,7 +10,7 @@ var InstantGame = cc.Class({
         this.preloadedRewardedVideo = null;
         this.preloadedInterstitial = null;
         this.initBase64();
-        this.enable = false;
+        this.enable = true;
     },
 
     properties: {
@@ -25,6 +25,20 @@ var InstantGame = cc.Class({
             }
             return this._instance;
         }
+    },
+
+    payIAP : function (callback) {
+        if(!this.enable){
+            return;
+        }
+        var self = this;
+        FBInstant.payments.onReady(function () {
+            FBInstant.payments.getCatalogAsync().then(function (catalog) {
+                typeof callback === 'function' && callback({
+                    catalog: catalog
+                });
+            });
+        });
     },
 
     getInfor : function (callback) {
@@ -140,7 +154,7 @@ var InstantGame = cc.Class({
         }
     },
 
-    showRewardedVideo: function() {
+    showRewardedVideo: function(callback) {
         if(!this.enable){
             return;
         }
@@ -150,6 +164,9 @@ var InstantGame = cc.Class({
             if(self.preloadedRewardedVideo != null){
                 self.preloadedRewardedVideo.showAsync()
                     .then(function() {
+
+                        typeof callback === 'function' && callback();
+
                         self.loadRewardedVideo();
                     }).catch(function(e) {
                         console.error(e.message);
