@@ -78,6 +78,7 @@ var Treasure = cc.Class({
         this.initFirstItem();
         var self = this;
         this.coin = 0;
+        this.oldCoin = 0;
         this.win_coin = 0;
         InstantGame.getInstance().getInfor(function (response) {
             console.log("NAME : ",response.name);
@@ -87,8 +88,8 @@ var Treasure = cc.Class({
             self.updateMoney();
         });
 
-        this.coin = 50000;
-        this.updateMoney();
+        //this.coin = 50000;
+        //this.updateMoney();
 
         this.soundBackground = this.soundMusics[GameUtils.getInstance().randomIntFromInterval(0,1)];
         this.playMusic(this.soundBackground);
@@ -284,9 +285,10 @@ var Treasure = cc.Class({
         if(this.isComplete){
             this.deltaTime -= dt;
             if(this.deltaTime < 0){
-                this.deltaTime = 3;
+                this.deltaTime = 2.5;
                 if(this.countAnimate > this.list_win.length - 1){
                     this.isComplete = false;
+                    this.isRunning = false;
                     this.deltaTime = 0;
                     this.countAnimate = 0;
 
@@ -312,7 +314,7 @@ var Treasure = cc.Class({
         const sound_random = Math.floor(Math.random()*5);
         this.playSound(this.soundWinLines[sound_random]);
 
-        var money_view = this.coin + money;
+        var money_view = this.oldCoin + money;
         this.updateMoneyView(money_view);
 
         this.win_coin += money;
@@ -460,7 +462,8 @@ var Treasure = cc.Class({
 
             var delay = cc.delayTime(lst_time_random[y]*0.15);
 
-            if(i == this.list_item.length - 1 && listWin.length > 0){
+            if(i == this.list_item.length - 1){
+                if(listWin.length > 0){
                     // khi dừng hiệu ứng
                     var call_func = cc.callFunc(function () {
                         // update line_result
@@ -472,28 +475,28 @@ var Treasure = cc.Class({
                         this.deltaTime = 0;
                         this.isComplete = true;
                         this.countAnimate = 0;
-                        this.isRunning = false;
+                        this.isRunning = true;
                         this.updateButtonSpin();
+
+                        this.oldCoin = this.coin;
+                        for(var i = 0; i < this.list_money.length; i++){
+                            this.coin += this.list_money[i];
+                        }
+                        InstantGame.getInstance().updateCoin(this.coin);
 
                         this.setSoundVolume(this.soundBackground,0.25);
 
                     }.bind(this));
-
-                    var call_func_display_money = cc.callFunc(function() {
-                        //this.coin += this.moneyBet* listWin;
-
-                        //this.updateMoney();
-                        //console.log("coin : ",this.coin);
-                        //InstantGame.getInstance().updateCoin(this.coin);
-                    }.bind(this));
-
                     item.runAction(cc.sequence(delay,move1,move2,call_func));
+                }else{
+                    var call_func = cc.callFunc(function () {
+                        this.isRunning = false;
+                        this.updateButtonSpin();
+                    }.bind(this));
+                    item.runAction(cc.sequence(delay,move1,move2,call_func));
+                }
             }else{
-                var call_func = cc.callFunc(function () {
-                    this.isRunning = false;
-                    this.updateButtonSpin();
-                }.bind(this));
-                item.runAction(cc.sequence(delay,move1,move2,call_func));
+                item.runAction(cc.sequence(delay,move1,move2));
             }
         }
     },
@@ -524,9 +527,7 @@ var Treasure = cc.Class({
         }*/
     },
     getSpin: function() {
-
-
-        if(this.isRunning && this.coin <= 0){
+        if(this.isRunning || this.coin <= 0){
             return;
         }
 
