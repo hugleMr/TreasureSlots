@@ -158,6 +158,7 @@ var InstantGame = cc.Class({
         if(!this.enable){
             return;
         }
+
         var self = this;
         var supportedAPIs = FBInstant.getSupportedAPIs();
         if (supportedAPIs.includes('getRewardedVideoAsync')){
