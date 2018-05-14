@@ -64,16 +64,16 @@ var GameUtils = cc.Class({
         if(items[0] === items[4]) {
             // x 5
             if(this.PAY_TABLE[items[0]][5] !== 0)
-                base = 5;
+                base = this.PAY_TABLE[items[0]][5];
             //return result;
         } else if(items[0] == items[3] || items[1] == items[4]) {
             // x4
             if(this.PAY_TABLE[items[1]][4] !== 0)
-                base = 4;
+                base = this.PAY_TABLE[items[1]][4];
         } else if (items[0] == items[2] || items[1] == items[3] || items[2] == items[4]) {
             // x3
             if(this.PAY_TABLE[items[2]][3] !== 0)
-                base = 3;
+                base = this.PAY_TABLE[items[2]][3];
         }
         return base;
     },
