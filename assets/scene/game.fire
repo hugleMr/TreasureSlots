@@ -4568,6 +4568,37 @@
       "__id__": 2
     },
     "_enabled": true,
+    "soundWinLines": [
+      {
+        "__uuid__": "3f5a6b61-cd49-421d-936c-93dae61e9634"
+      },
+      {
+        "__uuid__": "133c76d6-21ad-4f2d-a302-07eb164ac042"
+      },
+      {
+        "__uuid__": "79519bd8-2983-4a0f-bc61-28ebc0be74b5"
+      },
+      {
+        "__uuid__": "9e6ccd0f-5fcd-453f-85df-d03eb0dfb6a5"
+      },
+      {
+        "__uuid__": "44151264-aa85-4e23-be2d-a34493e16406"
+      },
+      {
+        "__uuid__": "ae963166-9a2a-4f4c-b12a-2507e1f641ad"
+      }
+    ],
+    "soundStopSpin": {
+      "__uuid__": "149e40ea-f498-43ca-818c-0eaedececb84"
+    },
+    "soundMusics": [
+      {
+        "__uuid__": "89d0a474-7712-4666-b4c1-e413f1251222"
+      },
+      {
+        "__uuid__": "9a2e6ee0-4720-4c68-9084-2361eedf54ce"
+      }
+    ],
     "board_view": {
       "__id__": 8
     },
@@ -4583,10 +4614,20 @@
     "btn_select_lines": {
       "__uuid__": "95c82ec8-b87c-463a-905d-c0f96d7e9a4c"
     },
+    "btn_spin": {
+      "__id__": 57
+    },
+    "btn_spin_frames": [
+      {
+        "__uuid__": "7881ef6b-0544-492a-bde5-3266f097debe"
+      },
+      {
+        "__uuid__": "f72bee0b-f288-4b22-90c0-608ad7620a25"
+      }
+    ],
     "line_result": {
       "__uuid__": "0a8d8e34-012e-4d05-a06f-f1d1aa73b939"
     },
-    "nohuPrefab": null,
     "board_null_line": {
       "__id__": 9
     },
@@ -4619,25 +4660,19 @@
     "popup_bet_select": {
       "__id__": 63
     },
-    "is_bet_select": false,
-    "isFinishSpin": true,
-    "isRun": false,
-    "isRequestJar": false,
     "txt_user_money": {
       "__id__": 91
     },
     "money_display": null,
+    "coin": {
+      "__uuid__": "ee284e6a-38d4-4b8a-98dc-1617c39d281c"
+    },
     "mask": {
       "__id__": 8
     },
     "board_hide": {
       "__id__": 10
     },
-    "stepMove": 21,
-    "number": 5,
-    "time_move": 2,
-    "jarValue": 0,
-    "roomIndex": 0,
-    "betType": 0
+    "isRequestJar": false
   }
 ]
