@@ -11,13 +11,17 @@ var Treasure = cc.Class({
     extends: cc.Component,
 
     properties: {
+        soundWinLines : [cc.AudioClip],
+        soundStopSpin : cc.AudioClip,
+        soundMusics : [cc.AudioClip],
         board_view: cc.Mask,
         itemPrefab: cc.Prefab,
         sound_end : cc.AudioClip,
         sound_spin : cc.AudioClip,
         btn_select_lines: cc.Prefab,
+        btn_spin : cc.Node,
+        btn_spin_frames : [cc.SpriteFrame],
         line_result: cc.Prefab,
-        nohuPrefab: cc.Prefab,
         board_null_line: cc.Node,
         txt_jar_money: cc.Label,
         txt_bet_money: cc.Label,
@@ -26,20 +30,12 @@ var Treasure = cc.Class({
         txt_total_bet_money: cc.Label,
         bets_select : [cc.Label],
         popup_bet_select : cc.Node,
-        is_bet_select: false,
-        isFinishSpin: true,
-        isRun: false,
-        isRequestJar: false,
         txt_user_money: cc.Label,
         money_display : cc.Label,
+        coin : cc.Prefab,
         mask : cc.Mask,
         board_hide : cc.Node,
-        stepMove : 21,
-        number : 5,
-        time_move: 3,
-        jarValue: 0,
-        roomIndex: 0,
-        betType: 0,
+        isRequestJar : false,
 
     },
     statics: {
@@ -69,20 +65,23 @@ var Treasure = cc.Class({
     },
 
     onLoad: function() {
+
+        cc.director.setDisplayStats ( false )
         Treasure.instance = this;
         this.schedule(this.requestJar, 5);
 
         this.init();
+        this.initCoinPool();
         this.initItemPool();
         this.initValue();
         this.initMenu();
         this.initFirstItem();
-        InstantGame.getInstance().getInfor(function (response) {
-            console.log("NAME : ",response.name);
-        });
         var self = this;
         this.coin = 0;
         this.win_coin = 0;
+        InstantGame.getInstance().getInfor(function (response) {
+            console.log("NAME : ",response.name);
+        });
         InstantGame.getInstance().getCoin(function (response) {
             self.coin = response.coin;
             self.updateMoney();
@@ -90,6 +89,9 @@ var Treasure = cc.Class({
 
         this.coin = 50000;
         this.updateMoney();
+
+        this.soundBackground = this.soundMusics[GameUtils.getInstance().randomIntFromInterval(0,1)];
+        this.playMusic(this.soundBackground);
     },
 
     init: function () {
@@ -109,15 +111,23 @@ var Treasure = cc.Class({
         this.displayChangeMoney = 0;
         this.moneyBet = 0;
 
+        this.stepMove = 21;
+        this.number = 5;
+        this.time_move = 3;
+        this.jarValue = 0;
+        this.roomIndex = 0;
+        this.betType = 0;
+
         this.countInterstitial = 0;
 
+        this.is_bet_select = false;
+        this.isFinishSpin = true;
+        this.isRun = false;
+
         this.isComplete = false;
-        this.isRunAnim = false;
         this.isRunning = false;
         this.countAnimate = 0;
         this.deltaTime = 0;
-
-        cc.log("init");
     },
 
     initValue: function () {
@@ -145,6 +155,25 @@ var Treasure = cc.Class({
         //Common.showToast("Chức năng này đang được cập nhật");
     },
 
+    initCoinPool: function () {
+        this.coinPool = new cc.NodePool();
+        for (var i = 0; i < 10; ++i) {
+            var item = cc.instantiate(this.coin); // create node instance
+            this.coinPool.put(item); // populate your pool with putInPool method
+        }
+    },
+
+    getCoin: function () {
+        var coin = null;
+        if(this.coinPool.size() > 0){
+            coin = this.coinPool.get();
+        }else{
+            coin = cc.instantiate(this.coin);
+        }
+
+        return coin;
+    },
+
     initItemPool: function () {
         this.itemPool = new cc.NodePool();
         for (var i = 0; i < 20; ++i) {
@@ -160,9 +189,7 @@ var Treasure = cc.Class({
         }else{
             item = cc.instantiate(this.itemPrefab);
         }
-        var self = this;
         item.getComponent("ItemPrefab").init(index,function () {
-            self.board_hide.active = false;
         });
 
         return item;
@@ -208,6 +235,12 @@ var Treasure = cc.Class({
         this.setLineSelected();
     },
 
+    showCoinAnimation : function () {
+        for(var i = 0; i < 10; i++){
+            var coi
+        }
+    },
+
     initFirstItem: function() {
         for(var i = 0; i < this.stepMove; i++){
             for(var j = 0; j < this.number; j++){
@@ -244,7 +277,6 @@ var Treasure = cc.Class({
             self.requestJar();
         },this);
 
-
         item.node.runAction(cc.sequence(cc.delayTime(2), callFunc2, cc.delayTime(1), cc.fadeOut(1), cc.removeSelf(), null));*/
     },
 
@@ -276,6 +308,9 @@ var Treasure = cc.Class({
         if(listWin.length == 0){
             return;
         }
+
+        const sound_random = Math.floor(Math.random()*5);
+        this.playSound(this.soundWinLines[sound_random]);
 
         var money_view = this.coin + money;
         this.updateMoneyView(money_view);
@@ -325,8 +360,24 @@ var Treasure = cc.Class({
         }
     },
 
+    setSoundVolume : function (soundID,volume) {
+        cc.audioEngine.setVolume(soundID,volume);
+    },
+
+    playSound : function (soundID) {
+        cc.audioEngine.play(soundID,false,1);
+    },
+
+    playMusic : function (soundID) {
+        cc.audioEngine.play(soundID,true,1);
+    },
+
     implementSpinTreasure: function (textEmotionId, listItem, listWin, listMoney) {
         this.isRunning = true;
+        this.updateButtonSpin();
+        this.board_hide.active = false;
+        this.setSoundVolume(this.soundBackground,1);
+
         this.isComplete = false;
         this.win_coin = 0;
         this.updateWinMoney();
@@ -351,11 +402,11 @@ var Treasure = cc.Class({
         var index_item = 4;
         //this.txt_user_money.string = this.prevMoney;//this.numberFormatWithCommas(this.prevMoney);
 
-        cc.audioEngine.stopAll();
-        cc.audioEngine.playEffect(this.sound_spin,false);
+        this.playSound(this.sound_spin);
 
         for(var i = 0; i < this.list_item.length; i++){
             this.list_item[i].getComponent("ItemPrefab").reset();
+            this.list_item[i].getComponent("ItemPrefab").node.setLocalZOrder(1);
 
             var x = parseInt(i/this.number);
             var y = parseInt(i%this.number);
@@ -404,10 +455,10 @@ var Treasure = cc.Class({
 
             var h = item.getContentSize().height*1.02;
 
-            var move1 = cc.moveBy(1,cc.p(0,-this.stepMove*h*0.55)).easing(cc.easeExponentialIn());
+            var move1 = cc.moveBy(1,cc.p(0,-this.stepMove*h*0.55));
             var move2 = cc.moveBy(1,cc.p(0,-(this.stepMove*0.45 - index_item)*h)).easing(cc.easeBackOut());
 
-            var delay = cc.delayTime(y*0.2);
+            var delay = cc.delayTime(lst_time_random[y]*0.15);
 
             if(i == this.list_item.length - 1 && listWin.length > 0){
                     // khi dừng hiệu ứng
@@ -422,6 +473,9 @@ var Treasure = cc.Class({
                         this.isComplete = true;
                         this.countAnimate = 0;
                         this.isRunning = false;
+                        this.updateButtonSpin();
+
+                        this.setSoundVolume(this.soundBackground,0.25);
 
                     }.bind(this));
 
@@ -437,6 +491,7 @@ var Treasure = cc.Class({
             }else{
                 var call_func = cc.callFunc(function () {
                     this.isRunning = false;
+                    this.updateButtonSpin();
                 }.bind(this));
                 item.runAction(cc.sequence(delay,move1,move2,call_func));
             }
@@ -469,7 +524,9 @@ var Treasure = cc.Class({
         }*/
     },
     getSpin: function() {
-        if(this.isRunning){
+
+
+        if(this.isRunning && this.coin <= 0){
             return;
         }
 
@@ -498,6 +555,10 @@ var Treasure = cc.Class({
 
     updateWinMoney: function () {
         this.txt_win_money.string = this.numberFormatWithCommas(this.win_coin === 0 ? "" : this.win_coin);
+    },
+
+    updateButtonSpin: function () {
+        this.btn_spin.getComponent(cc.Sprite).spriteFrame = this.isRunning ? this.btn_spin_frames[0] : this.btn_spin_frames[1];
     },
 
     getTurnTreasureRequest: function(turnType) {
