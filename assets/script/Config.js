@@ -22,6 +22,7 @@ var Config = {
     name : {
         POPUP_SELECT_LINE : "PopupSelectLine",
         POPUP_PAY_INFO : "PopupPayInfo",
+        POPUP_RANK : "PopupRank",
     },
 
     ON_EVENT: {
