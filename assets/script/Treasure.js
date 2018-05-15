@@ -63,7 +63,7 @@ var Treasure = cc.Class({
     },
 
     onLoad: function() {
-        cc.director.setDisplayStats (false)
+        cc.director.setDisplayStats (false);
         Treasure.instance = this;
 
         this.scheduleOnce(function () {
@@ -80,6 +80,7 @@ var Treasure = cc.Class({
         this.coin = 0;
         this.oldCoin = 0;
         this.win_coin = 0;
+
 
         this.btn_reward.active = InstantGame.getInstance().checkSupport();
 
@@ -317,9 +318,9 @@ var Treasure = cc.Class({
         this.win_coin += money;
         this.updateWinMoney();
 
-        const winTable = GameUtils.getInstance().WIN_TABLE;
+        const winABC= GameUtils.getInstance().getWinABC();
         //const delay = index_x*2;
-        const win = winTable[listWin[index] - 1];
+        const win = winABC[listWin[index] - 1];
 
         var line = this.lst_line_result[listWin[index] - 1];
         line.getComponent("LineResult").show(true);
@@ -374,6 +375,7 @@ var Treasure = cc.Class({
     },
 
     implementSpinTreasure: function (textEmotionId, listItem, listWin, listMoney) {
+
         this.isRunning = true;
         this.updateButtonSpin();
         this.board_hide.active = false;
@@ -543,7 +545,11 @@ var Treasure = cc.Class({
 
         this.countInterstitial ++;
 
+
         var listItem = GameUtils.getInstance().getListItem(3 * 5);
+        // var test = true;
+        // if(test)
+        //     listItem = [100, 101, 100, 98, 101, 105, 101, 99, 104, 102, 101, 101, 103, 99, 102];
         console.log("listItem : ",listItem);
         var result = GameUtils.getInstance().getResult(this.lst_line_selected, listItem, this.moneyBet);
         var lineWin = result.listWin;

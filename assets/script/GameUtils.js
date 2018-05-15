@@ -1,8 +1,12 @@
 var GameUtils = cc.Class({
     properties: {
+        WIN_TABLE: [],
+        PAY_TABLE: []
     },
     ctor: function() {
-        this.WIN_TABLE = [[5, 6, 7, 8, 9], //1
+    },
+    getWinABC: function() {
+        var items = [[5, 6, 7, 8, 9], //1
             [0, 1, 2, 3, 4], //2
             [10, 11, 12, 13, 14], //3
             [5, 6, 2, 8, 9], //4
@@ -21,17 +25,9 @@ var GameUtils = cc.Class({
             [5, 11, 12, 13, 9], //17
             [5, 1, 2, 3, 9], //18
             [10, 11, 7, 3, 4], //19
-            [0, 1, 7, 13, 14]]; //20
-        this.PAY_TABLE = {
-            98: {3: 0, 4: 6, 5: 10},
-            99: {3: 0, 4: 8, 5: 20},
-            100: {3: 4, 4: 16, 5: 100},
-            101: {3: 6, 4: 20, 5: 200},
-            102: {3: 8, 4: 45, 5: 300},
-            103: {3: 10, 4: 60, 5: 500},
-            104: {3: 0, 4: 0, 5: 1000},
-            105: {3: 20, 4: 200, 5: 1000}
-        };
+            [0, 1, 7, 13, 14]]; // 20;
+        cc.log("items:", items);
+        return items;
     },
     statics: {
         _instance: null,
@@ -52,9 +48,9 @@ var GameUtils = cc.Class({
         if(max === null  || typeof(max) === 'undefined') {
             max = 105;
         }
-        var result = new Array(nElement);
-        for(var i = 0; i < result.length; i++) {
-            result[i] = this.randomIntFromInterval(min, max);
+        var result = [];
+        for(var i = 0; i < nElement; i++) {
+            result.push(this.randomIntFromInterval(min, max));
         }
         return result;
     },
@@ -64,16 +60,16 @@ var GameUtils = cc.Class({
         if(items[0] === items[4]) {
             // x 5
             if(this.PAY_TABLE[items[0]][5] !== 0)
-                base = this.PAY_TABLE[items[0]][5];
+                base = Config.PAY_TABLE[items[0]][5];
             //return result;
         } else if(items[0] == items[3] || items[1] == items[4]) {
             // x4
-            if(this.PAY_TABLE[items[1]][4] !== 0)
-                base = this.PAY_TABLE[items[1]][4];
+            if(Config.PAY_TABLE[items[1]][4] !== 0)
+                base = Config.PAY_TABLE[items[1]][4];
         } else if (items[0] == items[2] || items[1] == items[3] || items[2] == items[4]) {
             // x3
-            if(this.PAY_TABLE[items[2]][3] !== 0)
-                base = this.PAY_TABLE[items[2]][3];
+            if(Config.PAY_TABLE[items[2]][3] !== 0)
+                base = Config.PAY_TABLE[items[2]][3];
         }
         return base;
     },
@@ -87,13 +83,20 @@ var GameUtils = cc.Class({
             var index = element - 1;
 
             // caculate win table
-            var items = self.WIN_TABLE[index].map(function(element) {
+            var winTable = self.getWinABC()[index];
+            var items = [];
+            // for(var i = 0; i < winTable.length; i++) {
+            //     items.push(listItem[winTable[i]]);
+            // }
+            var items = winTable.map(function(element) {
                 return listItem[element];
             });
 
             items.sort(function(a, b) {
                 return a - b;
             });
+
+            cc.log("win table:", self.getWinABC());
 
             // we have items array sorted
             var base = self.calculateMoneyItem(items, baseMoney);
