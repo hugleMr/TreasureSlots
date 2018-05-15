@@ -91,8 +91,8 @@ var Treasure = cc.Class({
             self.updateMoney(0);
         });
 
-        // this.coin = 50000;
-        // this.updateMoney();
+        this.coin = 50000;
+        this.updateMoney(0);
         this.playMusic(this.soundMusic);
     },
 
@@ -420,6 +420,11 @@ var Treasure = cc.Class({
             }else if(i >= this.list_item.length - index_item*this.number && i < this.list_item.length - 1){
 
                 var index_x = i - this.list_item.length + index_item*this.number;
+                if(index_x < 5){
+                    index_x += 10;
+                }else if(index_x > 9){
+                    index_x -= 10;
+                }
                 value = list_recent_values[index_x] - 98;
             }else{
                 value = Math.floor(Math.random() * 7);

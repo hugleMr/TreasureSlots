@@ -8,7 +8,7 @@ var InstantGame = cc.Class({
         this.preloadedRewardedVideo = null;
         this.preloadedInterstitial = null;
         this.initBase64();
-        this.enable = true;
+        this.enable = false;
     },
 
     properties: {
