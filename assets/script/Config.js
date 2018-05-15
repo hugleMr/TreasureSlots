@@ -22,6 +22,7 @@ var Config = {
     name : {
         POPUP_SELECT_LINE : "PopupSelectLine",
         POPUP_PAY_INFO : "PopupPayInfo",
+        POPUP_RANK : "PopupRank",
     },
     WIN_TABLE: [[5, 6, 7, 8, 9], //1
         [0, 1, 2, 3, 4], //2
