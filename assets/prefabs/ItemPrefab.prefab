@@ -154,7 +154,7 @@
     },
     "_enabled": true,
     "_spriteFrame": {
-      "__uuid__": "04c59854-3129-4cc2-8702-18f42559cb4b"
+      "__uuid__": "9c1d74ca-9a59-462f-9e61-2f5e075a9e0b"
     },
     "_type": 0,
     "_sizeMode": 0,
@@ -169,7 +169,9 @@
     "_isTrimmedMode": false,
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_atlas": null
+    "_atlas": {
+      "__uuid__": "f3d6d4b9-7de0-4f1a-a458-140edb60efdf"
+    }
   },
   {
     "__type__": "cc.Animation",
@@ -359,7 +361,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 10
@@ -413,9 +415,6 @@
     },
     "_enabled": true,
     "_custom": false,
-    "_texture": {
-      "__uuid__": "916e7260-957a-4d0b-a377-e46389e81a2c"
-    },
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 1,
     "playOnLoad": true,
@@ -1184,28 +1183,28 @@
     },
     "list_frame": [
       {
-        "__uuid__": "7f37ebbe-efa4-43c2-b0d4-b9f56dadf385"
+        "__uuid__": "9eb0a69f-e9fd-48c6-8929-8dffb09db1da"
       },
       {
-        "__uuid__": "2e875a5d-d27c-4c84-980a-e244e88391e3"
+        "__uuid__": "f509964e-5bf9-48ab-8a09-d0bed9c03f30"
       },
       {
-        "__uuid__": "62efcc6d-c474-4914-a757-4b470cd5bf6f"
+        "__uuid__": "9c1d74ca-9a59-462f-9e61-2f5e075a9e0b"
       },
       {
-        "__uuid__": "04c59854-3129-4cc2-8702-18f42559cb4b"
+        "__uuid__": "9df2e10a-7b7f-4c37-8829-dc39cb2a424f"
       },
       {
-        "__uuid__": "66be0f84-90dc-4c7c-8287-bd6ec8e04229"
+        "__uuid__": "bf3195d7-b76a-4ff8-95ea-bcf9ee6b8899"
       },
       {
-        "__uuid__": "9d06ef30-29e1-442d-9bf3-b7f55a991361"
+        "__uuid__": "35d0e0f3-06fc-4b19-906d-a6693585a2d6"
       },
       {
-        "__uuid__": "36e6c849-5788-43c3-8da1-85b062783a38"
+        "__uuid__": "e7db1c91-142c-48cd-86af-f9e0a65d84d4"
       },
       {
-        "__uuid__": "58ad1523-8511-40ec-af5d-e5a27d18c1c6"
+        "__uuid__": "6239f024-bfa4-4a81-9e7f-1d47430cf583"
       }
     ]
   },

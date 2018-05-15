@@ -46,5 +46,92 @@
   <script src="src/settings.js" charset="utf-8"></script>
   
   <script src="main.js" charset="utf-8"></script>
+
+  <script>
+      const REWARDED_PLACEMENT_ID = "249365268940500_261710297705997";
+      const INTERSTITIAL_PLACEMENT_ID = "249365268940500_249365412273819";
+      var preloadedRewardedVideo = null;
+      var preloadedInterstitial = null;
+
+      function loadInterstitialAd() {
+          var supportedAPIs = FBInstant.getSupportedAPIs();
+          if (supportedAPIs.includes('getInterstitialAdAsync')) {
+
+              FBInstant.getInterstitialAdAsync(
+                  INTERSTITIAL_PLACEMENT_ID,
+              ).then(function (interstitial) {
+                  preloadedInterstitial = interstitial;
+                  return preloadedInterstitial.loadAsync();
+              }).then(function () {
+                  console.log('Interstitial success to preload');
+              }).catch(function (err) {
+                  console.log('Interstitial failed to preload: ', err.message);
+                  preloadedInterstitial = null;
+              });
+          }else{
+              console.log("Interstitial is not support");
+          }
+      }
+
+      function loadRewardedVideo() {
+          var supportedAPIs = FBInstant.getSupportedAPIs();
+          if (supportedAPIs.includes('getRewardedVideoAsync')){
+              FBInstant.getRewardedVideoAsync(
+                  REWARDED_PLACEMENT_ID,
+              ).then(function(rewarded) {
+                  preloadedRewardedVideo = rewarded;
+                  return preloadedRewardedVideo.loadAsync();
+              }).then(function() {
+                  console.log("preloadedRewardedVideo preloaded");
+              }).catch(function(err){
+                  console.log('preloadedRewardedVideo failed to preload: ', err.message);
+                  preloadedRewardedVideo = null;
+              });
+          }else{
+              console.log("Interstitial is not support");
+          }
+      }
+
+      function showInterstitialAd(callback) {
+          var supportedAPIs = FBInstant.getSupportedAPIs();
+          if (supportedAPIs.includes('getInterstitialAdAsync')) {
+              if(preloadedInterstitial != null){
+                  preloadedInterstitial.showAsync().
+                  then(function() {
+                      loadInterstitialAd();
+                  }).catch(function(e) {
+                      console.error(e.message);
+                      typeof callback === 'function' && callback({
+                          error : e.message,
+                      });
+
+                      preloadedInterstitial = null;
+                  });
+              }else{
+                  loadInterstitialAd();
+              }
+          }
+      }
+
+      function showRewardedVideo(callback) {
+          var supportedAPIs = FBInstant.getSupportedAPIs();
+          if (supportedAPIs.includes('getRewardedVideoAsync')){
+              if(preloadedRewardedVideo != null){
+                  preloadedRewardedVideo.showAsync()
+                      .then(function() {
+
+                          typeof callback === 'function' && callback();
+
+                          loadRewardedVideo();
+                      }).catch(function(e) {
+                      console.error(e.message);
+                      preloadedRewardedVideo = null;
+                  });
+              }else{
+                  loadRewardedVideo();
+              }
+          }
+      }
+    </script>
 </body>
 </html>
