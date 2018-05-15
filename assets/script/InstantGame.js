@@ -3,12 +3,14 @@ var InstantGame = cc.Class({
     ctor: function() {
         this.REWARDED_PLACEMENT_ID = "249365268940500_261710297705997";
         this.INTERSTITIAL_PLACEMENT_ID = "249365268940500_249365412273819";
-        this.LEADER_BOARD = "BEST_COINS";
+        this.LEADER_BOARD = "TREASURE_BEST";
+        this.LEADER_BOARD_CONTEXT = "TREASURE_BEST_CONTEXT.";
 
         this.preloadedRewardedVideo = null;
         this.preloadedInterstitial = null;
         this.initBase64();
-        this.enable = false;
+        this.enableSound = true;
+        this.enable = true;
     },
 
     properties: {
@@ -44,9 +46,28 @@ var InstantGame = cc.Class({
             return;
         }
         var userName = FBInstant.player.getName();
+        var userPhoto = FBInstant.player.getPhoto();
+
         typeof callback === 'function' && callback({
-            name: userName
+            name: userName,
+            photo : userPhoto
         });
+    },
+
+    getUserName : function () {
+        if(!this.enable){
+            return "";
+        }
+
+        return FBInstant.player.getName();
+    },
+
+    getUserPhoto : function () {
+        if(!this.enable){
+            return "";
+        }
+
+        return FBInstant.player.getPhoto();
     },
 
     updateCoin: function (coin) {
@@ -71,6 +92,10 @@ var InstantGame = cc.Class({
             .then(function(data){
                 if (typeof data['coin'] !== 'undefined') {
                     var coin_value  = data['coin'];
+                    if(coin_value <= 0){
+                        coin_value = 50000;
+                        self.updateCoin(coin_value,function (response) {});
+                    }
                     typeof callback === 'function' && callback({
                         coin: coin_value
                     });
@@ -136,6 +161,7 @@ var InstantGame = cc.Class({
         if(!this.enable){
             return;
         }
+
         var self = this;
         var supportedAPIs = FBInstant.getSupportedAPIs();
         if (supportedAPIs.includes('getInterstitialAdAsync')) {
@@ -238,6 +264,76 @@ var InstantGame = cc.Class({
             }).catch(function(err){
                 console.log(' getCoin : ', err.message);
             });
+    },
+
+    inviteFriends : function (callback) {
+        if(!this.enable){
+            return;
+        }
+        FBInstant.context
+            .chooseAsync()
+            .then(function() {
+                typeof callback === 'function' && callback({
+                    friendID: FBInstant.context.getID()
+                });
+            });
+    },
+
+    getUserRank : function(callback) {
+        if(!this.enable){
+            return;
+        }
+
+        var self = this;
+
+        FBInstant.getLeaderboardAsync(self.LEADER_BOARD)
+            .then(function(leaderboard) {
+                return leaderboard.getPlayerEntryAsync();
+            })
+            .then(function(entry) {
+                typeof callback === 'function' && callback({
+                    rank: entry.getRank(),
+                    score: entry.getScore()
+                });
+            });
+    },
+
+    getAllUserRank: function(count,callback) {
+        if(!this.enable){
+            return;
+        }
+
+        var self = this;
+        FBInstant.getLeaderboardAsync(self.LEADER_BOARD)
+            .then(function(leaderboard) {
+                return leaderboard.getEntriesAsync(count,0);
+            })
+            .then(function(entries) {
+                console.log(' entries : ', entries);
+                var list_rank = [];
+                for(var i = 0; i < entries.length; i++){
+                    var user_rank = entries[i].getRank();
+                    var user_url = entries[i].getPlayer().getPhoto();
+                    var user_name = entries[i].getPlayer().getName();
+                    var user_score = entries[i].getScore();
+
+                    var user = [];
+                    user.push(user_rank);
+                    user.push(user_url);
+                    user.push(user_name);
+                    user.push(user_score);
+
+                    list_rank.push(user);
+                }
+
+                console.log("list_rank : ",list_rank.length);
+
+                typeof callback === 'function' && callback({
+                    result: list_rank
+                });
+            }).catch(function(err){
+            console.log('getAllUserRank failed to : ', err.message);
+        });
     },
 
     updateContext: function (coin) {

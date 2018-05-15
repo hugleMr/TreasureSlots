@@ -11,12 +11,13 @@ var Treasure = cc.Class({
         soundWinLines : [cc.AudioClip],
         soundStopSpin : cc.AudioClip,
         soundMusic : cc.AudioClip,
-        demo : cc.Label,
         board_view: cc.Mask,
         itemPrefab: cc.Prefab,
         sound_spin : cc.AudioClip,
         btn_select_lines: cc.Prefab,
         btn_spin : cc.Node,
+        btn_sound : cc.Node,
+        sound_frames : [cc.SpriteFrame],
         btn_spin_frames : [cc.SpriteFrame],
         line_result: cc.Prefab,
         board_null_line: cc.Node,
@@ -80,20 +81,29 @@ var Treasure = cc.Class({
         this.coin = 0;
         this.oldCoin = 0;
         this.win_coin = 0;
+        this.userName = "";
+        this.userPhoto = "";
 
         this.btn_reward.active = InstantGame.getInstance().checkSupport();
 
         InstantGame.getInstance().getInfor(function (response) {
             console.log("NAME : ",response.name);
+            console.log("PHOTO : ",response.photo);
+
+            self.userName = response.name;
+            self.userPhoto = self.userPhoto;
+
         });
         InstantGame.getInstance().getCoin(function (response) {
             self.coin = response.coin;
             self.updateMoney(0);
         });
 
-        this.coin = 50000;
-        this.updateMoney(0);
+        // this.coin = 50000;
+        // this.updateMoney(0);
         this.playMusic(this.soundMusic);
+
+        this.enableSound = true;
     },
 
     init: function () {
@@ -362,15 +372,25 @@ var Treasure = cc.Class({
     },
 
     setSoundVolume : function (soundID,volume) {
-        cc.audioEngine.setVolume(soundID,volume);
+        if(this.enableSound){
+            cc.audioEngine.setVolume(soundID,volume);
+        }
     },
 
     playSound : function (soundID) {
-        cc.audioEngine.play(soundID,false,1);
+        if(this.enableSound){
+            cc.audioEngine.play(soundID,false,1);
+        }
     },
 
     playMusic : function (soundID) {
-        cc.audioEngine.play(soundID,true,1);
+        if(this.enableSound){
+            cc.audioEngine.play(soundID,true,1);
+        }
+    },
+
+    stopMusic : function (soundID) {
+        cc.audioEngine.stop(soundID);
     },
 
     implementSpinTreasure: function (textEmotionId, listItem, listWin, listMoney) {
@@ -916,17 +936,18 @@ var Treasure = cc.Class({
             popup.addTabs(tabString, HISTORY_SPIN);
             popup.appear();
         });*/
-
     },
+
     showTopUser: function () {
+        this.showPopup(Config.name.POPUP_RANK,function(popup) {
 
-        /*var tabString = ["Lịch sử quay", "Lịch sử nổ hũ", "Top cao thủ"];
+        });
+    },
 
-        Common.showPopup(Config.name.POPUP_HISTORY,function(popup) {
-            popup.addTabs(tabString, HISTORY_TOP_USER);
-            popup.appear();
-        });*/
-
+    showInviteFriends : function () {
+        InstantGame.getInstance().inviteFriends(function (response) {
+            console.log("Friend id :",response.friendID);
+        });
     },
 
     convertIntToMoneyView: function (value) {
@@ -941,6 +962,15 @@ var Treasure = cc.Class({
 
     numberFormatWithCommas: function(value){
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    },
+
+    buttonSoundEvent: function () {
+        this.enableSound = !this.enableSound;
+        if(!this.enableSound){
+            this.stopMusic(this.soundMusic);
+        }
+
+        this.btn_sound.getComponent(cc.Sprite).spriteFrame = this.enableSound ? this.sound_frames[1] : this.sound_frames[0];
     },
 
     closePopup: function (name_popup) {
