@@ -71,7 +71,9 @@
       "__id__": 1
     },
     "_enabled": true,
-    "_spriteFrame": null,
+    "_spriteFrame": {
+      "__uuid__": "8003a65a-9f40-452f-8e62-a58eb41cbe5e"
+    },
     "_type": 0,
     "_sizeMode": 2,
     "_fillType": 0,

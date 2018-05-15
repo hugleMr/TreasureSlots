@@ -10,9 +10,11 @@ cc.Class({
     },
 
     animate: function () {
-        var fade1 = cc.fadeTo(0.5,50);
-        var fade2 = cc.fadeTo(0.5,255);
-        this.node.runAction(cc.repeat(cc.sequence(fade1,fade2),6));
+        var fade1 = cc.fadeTo(0.475,50);
+        var fade2 = cc.fadeTo(0.475,255);
+        this.node.runAction(cc.sequence(cc.repeat(cc.sequence(fade1,fade2),3),cc.callFunc(function () {
+            this.show(false);
+        }.bind(this))));
     },
 
     show: function (isShow) {

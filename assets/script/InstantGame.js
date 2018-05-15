@@ -1,7 +1,5 @@
 
 var InstantGame = cc.Class({
-    extends: cc.Component,
-
     ctor: function() {
         this.REWARDED_PLACEMENT_ID = "249365268940500_261710297705997";
         this.INTERSTITIAL_PLACEMENT_ID = "249365268940500_249365412273819";
@@ -10,7 +8,7 @@ var InstantGame = cc.Class({
         this.preloadedRewardedVideo = null;
         this.preloadedInterstitial = null;
         this.initBase64();
-        this.enable = true;
+        this.enable = false;
     },
 
     properties: {
@@ -90,6 +88,7 @@ var InstantGame = cc.Class({
         if(!this.enable){
             return;
         }
+
         var self = this;
         var supportedAPIs = FBInstant.getSupportedAPIs();
         if (supportedAPIs.includes('getInterstitialAdAsync')) {
@@ -133,7 +132,7 @@ var InstantGame = cc.Class({
         }
     },
 
-    showInterstitialAd: function() {
+    showInterstitialAd: function(callback) {
         if(!this.enable){
             return;
         }
@@ -141,11 +140,15 @@ var InstantGame = cc.Class({
         var supportedAPIs = FBInstant.getSupportedAPIs();
         if (supportedAPIs.includes('getInterstitialAdAsync')) {
             if(preloadedInterstitial != null){
-                self.preloadedInterstitial.showAsync(
-                ).then(function() {
+                self.preloadedInterstitial.showAsync().
+                then(function() {
                     self.loadInterstitialAd();
                 }).catch(function(e) {
                     console.error(e.message);
+                    typeof callback === 'function' && callback({
+                        error : e.message,
+                    });
+
                     self.preloadedInterstitial = null;
                 });
             }else{
@@ -174,9 +177,17 @@ var InstantGame = cc.Class({
                         self.preloadedRewardedVideo = null;
                     });
             }else{
-                self.loadInterstitialAd();
+                self.loadRewardedVideo();
             }
         }
+    },
+
+    checkSupport : function () {
+        if(!this.enable){
+            return;
+        }
+        var supportedAPIs = FBInstant.getSupportedAPIs();
+        return supportedAPIs.includes('getInterstitialAdAsync');
     },
 
     updateCoinMax : function (score,callback) {
@@ -215,6 +226,10 @@ var InstantGame = cc.Class({
                     coin_value = entry.getScore();
                 }else{
                     self.updateCoin(coin_value,function (response) {});
+                }
+
+                if(coin_value < 0){
+                    self.updateCoin(50000,function (response) {});
                 }
 
                 typeof callback === 'function' && callback({

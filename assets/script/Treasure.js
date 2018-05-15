@@ -1,9 +1,6 @@
 // var BaseScene = require('BaseScene');
 // var NetworkManager = require('NetworkManager');
 
-var HISTORY_SPIN = 1;
-var HISTORY_BREAK_JAR = 2;
-var HISTORY_TOP_USER = 3;
 var GameUtils = require('GameUtils');
 var InstantGame = require('InstantGame');
 
@@ -13,10 +10,10 @@ var Treasure = cc.Class({
     properties: {
         soundWinLines : [cc.AudioClip],
         soundStopSpin : cc.AudioClip,
-        soundMusics : [cc.AudioClip],
+        soundMusic : cc.AudioClip,
+        demo : cc.Label,
         board_view: cc.Mask,
         itemPrefab: cc.Prefab,
-        sound_end : cc.AudioClip,
         sound_spin : cc.AudioClip,
         btn_select_lines: cc.Prefab,
         btn_spin : cc.Node,
@@ -29,6 +26,7 @@ var Treasure = cc.Class({
         txt_win_money: cc.Label,
         txt_total_bet_money: cc.Label,
         bets_select : [cc.Label],
+        btn_reward : cc.Node,
         popup_bet_select : cc.Node,
         txt_user_money: cc.Label,
         money_display : cc.Label,
@@ -65,10 +63,12 @@ var Treasure = cc.Class({
     },
 
     onLoad: function() {
-
-        cc.director.setDisplayStats ( false )
+        cc.director.setDisplayStats (false)
         Treasure.instance = this;
-        this.schedule(this.requestJar, 5);
+
+        this.scheduleOnce(function () {
+
+        }.bind(this),10);
 
         this.init();
         this.initCoinPool();
@@ -80,19 +80,20 @@ var Treasure = cc.Class({
         this.coin = 0;
         this.oldCoin = 0;
         this.win_coin = 0;
+
+        this.btn_reward.active = InstantGame.getInstance().checkSupport();
+
         InstantGame.getInstance().getInfor(function (response) {
             console.log("NAME : ",response.name);
         });
         InstantGame.getInstance().getCoin(function (response) {
             self.coin = response.coin;
-            self.updateMoney();
+            self.updateMoney(0);
         });
 
-        //this.coin = 50000;
-        //this.updateMoney();
-
-        this.soundBackground = this.soundMusics[GameUtils.getInstance().randomIntFromInterval(0,1)];
-        this.playMusic(this.soundBackground);
+        // this.coin = 50000;
+        // this.updateMoney();
+        this.playMusic(this.soundMusic);
     },
 
     init: function () {
@@ -107,23 +108,15 @@ var Treasure = cc.Class({
 
         this.turnCashValue = [];
         this.indexCash = 0;
-        this.prevMoney = 0;
-        this.lastMoney = 0;
-        this.displayChangeMoney = 0;
         this.moneyBet = 0;
 
         this.stepMove = 21;
         this.number = 5;
-        this.time_move = 3;
-        this.jarValue = 0;
-        this.roomIndex = 0;
         this.betType = 0;
 
         this.countInterstitial = 0;
 
         this.is_bet_select = false;
-        this.isFinishSpin = true;
-        this.isRun = false;
 
         this.isComplete = false;
         this.isRunning = false;
@@ -205,7 +198,7 @@ var Treasure = cc.Class({
             component.init(i);
             component.show(false);
 
-            this.board_null_line.addChild(line_result,2);
+            this.board_null_line.addChild(line_result,5);
 
             this.lst_line_result.push(line_result);
         }
@@ -228,7 +221,7 @@ var Treasure = cc.Class({
                         (-size_board.width/2 + size_line.width/2) :
                         (size_board.width/2 - size_line.width/2),
                 pos_line_top - size_line.height * ((i % 10) * 0.93 + 1)));
-            this.board_null_line.addChild(line_number,2);
+            this.board_null_line.addChild(line_number,5);
 
             this.lst_line_selected_sprite.push(component);
         }
@@ -285,16 +278,20 @@ var Treasure = cc.Class({
         if(this.isComplete){
             this.deltaTime -= dt;
             if(this.deltaTime < 0){
-                this.deltaTime = 2.5;
+                this.deltaTime = 3;
                 if(this.countAnimate > this.list_win.length - 1){
                     this.isComplete = false;
                     this.isRunning = false;
                     this.deltaTime = 0;
                     this.countAnimate = 0;
 
-                    if(this.countInterstitial === 4){
+                    if(this.countInterstitial >= 4){
                         this.countInterstitial = 0;
-                        InstantGame.getInstance().showInterstitialAd();
+                        if(InstantGame.getInstance().enable){
+                            window.showInterstitialAd(function (response) {
+                                this.demo.string + "demo : xxxx :" + response.error;
+                            }.bind(this));
+                        }
                     }
 
                     return;
@@ -314,8 +311,8 @@ var Treasure = cc.Class({
         const sound_random = Math.floor(Math.random()*5);
         this.playSound(this.soundWinLines[sound_random]);
 
-        var money_view = this.oldCoin + money;
-        this.updateMoneyView(money_view);
+        this.oldCoin += money;
+        this.updateMoneyView(this.oldCoin);
 
         this.win_coin += money;
         this.updateWinMoney();
@@ -324,14 +321,16 @@ var Treasure = cc.Class({
         //const delay = index_x*2;
         const win = winTable[listWin[index] - 1];
 
-        console.log("win win win: ",win);
+        var line = this.lst_line_result[listWin[index] - 1];
+        line.getComponent("LineResult").show(true);
+        line.getComponent("LineResult").animate();
 
         for(var j = 0; j < win.length; j++){
-            /*if(win[i] < 5){
-                win[i] = win[i] + 10;
-            }else if(win[i] > 9){
-                win[i] = win[i] - 10;
-            }*/
+            if(win[j] < 5){
+                win[j] = win[j] + 10;
+            }else if(win[j] > 9){
+                win[j] = win[j] - 10;
+            }
 
             const count = this.list_item.length - 4*this.number;
 
@@ -460,14 +459,13 @@ var Treasure = cc.Class({
             var move1 = cc.moveBy(1,cc.p(0,-this.stepMove*h*0.55));
             var move2 = cc.moveBy(1,cc.p(0,-(this.stepMove*0.45 - index_item)*h)).easing(cc.easeBackOut());
 
-            var delay = cc.delayTime(lst_time_random[y]*0.15);
+            var delay = cc.delayTime(y*0.15);
 
             if(i == this.list_item.length - 1){
                 if(listWin.length > 0){
                     // khi dừng hiệu ứng
                     var call_func = cc.callFunc(function () {
                         // update line_result
-                        //cc.audioEngine.playEffect(this.sound_end,false);
                         this.board_hide.active = true;
 
                         this.list_win = listWin;
@@ -492,6 +490,13 @@ var Treasure = cc.Class({
                     var call_func = cc.callFunc(function () {
                         this.isRunning = false;
                         this.updateButtonSpin();
+
+                        if(this.countInterstitial >= 4){
+                            this.countInterstitial = 0;
+                            InstantGame.getInstance().showInterstitialAd(function (response) {
+                                this.demo.string + "demo : xxxx :" + response.error;
+                            }.bind(this));
+                        }
                     }.bind(this));
                     item.runAction(cc.sequence(delay,move1,move2,call_func));
                 }
@@ -540,14 +545,21 @@ var Treasure = cc.Class({
         var lineWinMoney = result.money;
         cc.log("result:", result);
 
-        this.coin -= this.moneyBet*this.lst_line_selected.length;
-        this.updateMoney();
+        var money = -this.moneyBet*this.lst_line_selected.length;
+        this.updateMoney(money);
+        InstantGame.getInstance().updateCoin(this.coin);
 
         this.implementSpinTreasure(8,listItem, lineWin, lineWinMoney);
     },
 
-    updateMoney: function () {
+    updateMoney: function (money) {
+        this.coin += money;
+        if(this.coin < 0){
+            this.coin = 0;
+        }
         this.txt_user_money.string = this.numberFormatWithCommas(this.coin);
+
+        InstantGame.getInstance().updateCoin(this.coin);
     },
 
     updateMoneyView: function (coin) {
@@ -722,9 +734,11 @@ var Treasure = cc.Class({
 
     showRewardVideo : function () {
         var self = this;
-        InstantGame.getInstance().showRewardVideo(function () {
-            self.coin += Config.ADS_COIN.REWARD;
-        });
+        if(InstantGame.getInstance().enable){
+            window.showRewardedVideo(function () {
+                self.updateMoney(Config.ADS_COIN.REWARD);
+            });
+        }
     },
 
     chonDongTouchEvent: function () {
