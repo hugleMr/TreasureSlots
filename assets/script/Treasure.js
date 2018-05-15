@@ -338,9 +338,9 @@ var Treasure = cc.Class({
 
         for(var j = 0; j < win.length; j++){
             if(win[j] < 5){
-                win[j] = win[j] + 10;
+                win[j] += 10;
             }else if(win[j] > 9){
-                win[j] = win[j] - 10;
+                win[j] -= 10;
             }
 
             const count = this.list_item.length - 4*this.number;
