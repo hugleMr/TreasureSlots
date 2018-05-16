@@ -86,7 +86,11 @@ cc.Class({
         var photo = InstantGame.getInstance().getUserPhoto();
         var name = "You";
 
-        InstantGame.getInstance().getUserRank(function (response) {
+        if(!InstantGame.getInstance().enable){
+            return;
+        }
+
+        window.getUserRank(function (response) {
             self.list_items[0].init(0,
                 response.rank,
                 photo,
@@ -94,24 +98,21 @@ cc.Class({
                 response.score);
         });
 
-        InstantGame.getInstance().getAllUserRank(COUNT,function (response) {
+        window.getAllUserRank(COUNT,function (response) {
             var list_user = response.result;
             var count = list_user.length > COUNT ? COUNT : list_user.length;
             for(var i = 0; i < count; i++){
-                if(list_user[i].length >= 4){
-                    self.list_items[i + 1].init(i + 1,
-                        list_user[i][0],
-                        list_user[i][1],
-                        list_user[i][2],
-                        list_user[i][3]);
-                }
+                const k = i;
+                self.list_items[k + 1].init(k + 1,
+                    list_user[k][0],
+                    list_user[k][1],
+                    list_user[k][2],
+                    list_user[k][3]);
             }
         });
     },
 
     init: function () {
-        var self = this;
-
         var height = cc.director.getWinSize().height;
         this.scrollView.node.height = height;
         this.scrollView.node.getChildByName("view").height = height;
@@ -119,6 +120,11 @@ cc.Class({
 
         this.scrollView.node.setPositionY(-height);
 
+        this.getRank();
+    },
+
+    getRank : function () {
+        var self = this;
         this.appear(function () {
             var action = cc.moveTo(0.5,cc.p(0,0)).easing(cc.easeSineOut());
             self.scrollView.node.runAction(action);
