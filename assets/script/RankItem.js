@@ -14,7 +14,7 @@ cc.Class({
     },
     
     init : function (index,rank,url_picture,user_name,score) {
-        console.log("yyy : ",index);
+        console.log("yyy : ",rank);
         if(index == 0){
             this.icon_rank.node.active = false;
             this.user_rank.node.active = false;
@@ -28,6 +28,7 @@ cc.Class({
         }
 
         if(rank == 1 || rank == 2 || rank == 3){
+
             this.icon_rank.spriteFrame = this.icon_rank_frames[rank - 1];
         }else if(rank > 3){
             this.icon_rank.node.active = false;

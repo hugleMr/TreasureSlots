@@ -4,13 +4,15 @@
 var GameUtils = require('GameUtils');
 var InstantGame = require('InstantGame');
 
-var Treasure = cc.Class({
+cc.Class({
     extends: cc.Component,
 
     properties: {
         soundWinLines : [cc.AudioClip],
         soundStopSpin : cc.AudioClip,
         soundMusic : cc.AudioClip,
+        soundCoinFly : cc.AudioClip,
+        board: cc.Node,
         board_view: cc.Mask,
         itemPrefab: cc.Prefab,
         sound_spin : cc.AudioClip,
@@ -34,42 +36,14 @@ var Treasure = cc.Class({
         coin : cc.Prefab,
         mask : cc.Mask,
         board_hide : cc.Node,
+        bg_money_win : cc.Node,
+        bg_money : cc.Node,
         isRequestJar : false,
 
-    },
-    statics: {
-        instance: null
-    },
-
-    onGameEvent: function() {
-        var self = this;
-        /*NetworkManager.checkEvent(function(buffer) {
-            return self.handleMessage(buffer);
-        });*/
-    },
-    initDataFromLoading: function(zoneId, enterRoomResponse) {
-        /*this.enterRoomResponse = enterRoomResponse;
-        this.zoneId = zoneId;
-
-        var roomPlay = this.enterRoomResponse.getRoomplay();
-        this.roomIndex = roomPlay.getRoomindex();
-
-        if (this.enterRoomResponse.getArgsList().length > 0) {
-            var entry = this.enterRoomResponse.getArgsList()[0];
-            if (entry.getKey() == "initValue") {
-                this.initValue(entry.getValue());
-            }
-        }
-        cc.log("enter room response:", this.enterRoomResponse.toObject());*/
     },
 
     onLoad: function() {
         cc.director.setDisplayStats (false);
-        Treasure.instance = this;
-
-        this.scheduleOnce(function () {
-
-        }.bind(this),10);
 
         this.init();
         this.initCoinPool();
@@ -80,10 +54,10 @@ var Treasure = cc.Class({
         var self = this;
         this.coin = 0;
         this.oldCoin = 0;
+        this.oldWinCoin = 0;
         this.win_coin = 0;
         this.userName = "";
         this.userPhoto = "";
-
 
         this.btn_reward.active = InstantGame.getInstance().checkSupport();
 
@@ -95,9 +69,11 @@ var Treasure = cc.Class({
             self.userPhoto = self.userPhoto;
 
         });
+
         InstantGame.getInstance().getCoin(function (response) {
             self.coin = response.coin;
             self.updateMoney(0);
+            self.animMoney(self.txt_user_money,0,self.coin);
         });
 
         // this.coin = 50000;
@@ -105,6 +81,11 @@ var Treasure = cc.Class({
         this.playMusic(this.soundMusic);
 
         this.enableSound = true;
+    },
+
+    animMoney : function (obj,oldMoney,money) {
+        console.log("money : ",oldMoney);
+        InstantGame.getInstance().countNumberAnim(obj, oldMoney, money, 0, 1);
     },
 
     init: function () {
@@ -156,27 +137,15 @@ var Treasure = cc.Class({
         }
     },
 
-    getAutoSpin: function() {
-        //Common.showToast("Chức năng này đang được cập nhật");
-    },
-
     initCoinPool: function () {
-        this.coinPool = new cc.NodePool();
-        for (var i = 0; i < 10; ++i) {
-            var item = cc.instantiate(this.coin); // create node instance
-            this.coinPool.put(item); // populate your pool with putInPool method
-        }
-    },
+        this.coins_anim = [];
+        for(var i = 0; i < 15; i++){
+            var coin = cc.instantiate(this.coin);
+            coin.active = false;
+            this.board.parent.addChild(coin);
 
-    getCoin: function () {
-        var coin = null;
-        if(this.coinPool.size() > 0){
-            coin = this.coinPool.get();
-        }else{
-            coin = cc.instantiate(this.coin);
+            this.coins_anim.push(coin);
         }
-
-        return coin;
     },
 
     initItemPool: function () {
@@ -241,8 +210,21 @@ var Treasure = cc.Class({
     },
 
     showCoinAnimation : function () {
-        for(var i = 0; i < 10; i++){
-            var coi
+        var rand = (Math.random() > 0.5) ? -500 : 500;
+        for(var i = 0; i < 15; i++){
+            var coin = this.coins_anim[i];
+            coin.stopAllActions();
+            coin.active = true;
+            const start = cc.p(0,-this.board.height/2);
+            const end =  cc.p(0,this.board.height/2 + 50);
+            const mid = cc.p(start.x + rand,(end.y - start.y)*0.5 * (Math.random()*0.5 - Math.random()*0.2));
+            const bezier = [start,mid, end];
+            const move1 = cc.bezierTo(Math.random() + 0.5, bezier);
+
+            coin.setPosition(start);
+            coin.runAction(cc.sequence(move1,cc.callFunc(function () {
+                this.active = false;
+            },coin)));
         }
     },
 
@@ -266,24 +248,6 @@ var Treasure = cc.Class({
 
         console.log("list_recent_values : ",this.list_recent_values);
     },
-    showNoHu: function() {
-        cc.log("showNoHu");
-        /*var item = cc.instantiate(this.nohuPrefab).getComponent("Nohu");
-        item.playAnim();
-
-        this.node.addChild(item.node);
-        var self = this;
-
-        var callFunc2 = cc.callFunc(function (){
-            cc.log("call func 2");
-            Common.countNumberAnim(self.txt_jar_money, self.jarValue, 0, 0, 1);
-            self.txt_jar_money.string = 0;
-            self.isRequestJar = false;
-            self.requestJar();
-        },this);
-
-        item.node.runAction(cc.sequence(cc.delayTime(2), callFunc2, cc.delayTime(1), cc.fadeOut(1), cc.removeSelf(), null));*/
-    },
 
     update: function(dt) {
         if(this.isComplete){
@@ -296,11 +260,19 @@ var Treasure = cc.Class({
                     this.deltaTime = 0;
                     this.countAnimate = 0;
 
+                    this.oldWinCoin = this.win_coin;
+                    this.win_coin = 0;
+                    this.updateWinMoney();
+                    this.playSound(this.soundCoinFly);
+                    this.showCoinAnimation();
+                    var old_money = parseInt(this.txt_user_money.string);
+                    InstantGame.getInstance().countNumberAnim(this.txt_user_money, old_money, this.coin, 0, 1);
+
                     if(this.countInterstitial >= 4){
                         this.countInterstitial = 0;
                         if(InstantGame.getInstance().enable){
                             window.showInterstitialAd(function (response) {
-                                this.demo.string + "demo : xxxx :" + response.error;
+
                             }.bind(this));
                         }
                     }
@@ -322,9 +294,10 @@ var Treasure = cc.Class({
         const sound_random = Math.floor(Math.random()*5);
         this.playSound(this.soundWinLines[sound_random]);
 
-        this.oldCoin += money;
-        this.updateMoneyView(this.oldCoin);
+        //this.oldCoin += money;
+        //this.updateMoneyView(this.oldCoin);
 
+        this.oldWinCoin = this.win_coin;
         this.win_coin += money;
         this.updateWinMoney();
 
@@ -401,7 +374,8 @@ var Treasure = cc.Class({
         this.board_hide.active = false;
         this.setSoundVolume(this.soundBackground,1);
 
-        this.isComplete = false;
+        this.isComplete = false
+        this.oldWinCoin = this.win_coin;
         this.win_coin = 0;
         this.updateWinMoney();
 
@@ -503,7 +477,7 @@ var Treasure = cc.Class({
                         this.isRunning = true;
                         this.updateButtonSpin();
 
-                        this.oldCoin = this.coin;
+                        //this.oldCoin = this.coin;
                         for(var i = 0; i < this.list_money.length; i++){
                             this.coin += this.list_money[i];
                         }
@@ -550,21 +524,12 @@ var Treasure = cc.Class({
             line.reset();
         }
     },
-
-    requestJar: function() {
-        /*var self = this;
-        if(!self.isRequestJar) {
-            self.isRequestJar = true;
-            NetworkManager.getJarRequest(Common.getZoneId(), this.betType + 1);
-        }*/
-    },
     getSpin: function() {
         if(this.isRunning || this.coin <= 0){
             return;
         }
 
         this.countInterstitial ++;
-
 
         var listItem = GameUtils.getInstance().getListItem(3 * 5);
         // var test = true;
@@ -578,54 +543,38 @@ var Treasure = cc.Class({
 
         var money = -this.moneyBet*this.lst_line_selected.length;
         this.updateMoney(money);
+        this.animMoney(this.txt_user_money,this.oldCoin,this.coin);
         InstantGame.getInstance().updateCoin(this.coin);
 
         this.implementSpinTreasure(8,listItem, lineWin, lineWinMoney);
     },
 
     updateMoney: function (money) {
+
+        this.oldCoin = this.coin;
         this.coin += money;
         if(this.coin < 0){
             this.coin = 0;
         }
-        this.txt_user_money.string = this.numberFormatWithCommas(this.coin);
 
+        InstantGame.getInstance().updateCoinMax(parseInt(this.coin),function (response) {
+            
+        });
         InstantGame.getInstance().updateCoin(this.coin);
     },
 
     updateMoneyView: function (coin) {
-        this.txt_user_money.string = this.numberFormatWithCommas(coin);
+        //this.txt_user_money.string = this.numberFormatWithCommas(coin);
+        this.animMoney(this.txt_user_money,this.oldCoin,coin);
     },
 
     updateWinMoney: function () {
-        this.txt_win_money.string = this.numberFormatWithCommas(this.win_coin === 0 ? "" : this.win_coin);
+        //this.txt_win_money.string = this.numberFormatWithCommas(this.win_coin === 0 ? "" : this.win_coin);
+        this.animMoney(this.txt_win_money,this.oldWinCoin,this.win_coin);
     },
 
     updateButtonSpin: function () {
         this.btn_spin.getComponent(cc.Sprite).spriteFrame = this.isRunning ? this.btn_spin_frames[0] : this.btn_spin_frames[1];
-    },
-
-    getTurnTreasureRequest: function(turnType) {
-        /*var entries = [];
-
-        var entryTurn = new proto.BINMapFieldEntry();
-        entryTurn.setKey("turnSlotType");
-        entryTurn.setValue(turnType.toString());
-        entries.push(entryTurn);
-
-        var result = this.lst_line_selected.join(",");
-
-        cc.log("lst_line_selected",this.lst_line_selected);
-
-        var entryLine = new proto.BINMapFieldEntry();
-        entryLine.setKey("lineSelected");
-        entryLine.setValue(result);
-        entries.push(entryLine);
-        NetworkManager.getTurnMessageFromServer(0, entries);*/
-    },
-
-    exitRoom: function() {
-       // NetworkManager.requestExitRoomMessage(this.roomIndex);
     },
     getKeyBet: function() {
         return this.betType;
@@ -635,132 +584,7 @@ var Treasure = cc.Class({
     },
 
     onDestroy: function() {
-        this._super();
-        cc.log("on destroy");
-    },
-
-    onGameStatus: function() {
-        /*if(event.data!==null || event.data !== 'undefined') {
-            var lstMessage = NetworkManager.parseFrom(event.data, event.data.byteLength);
-            cc.log("list message size:" + lstMessage.length);
-            if(lstMessage.length > 0) {
-                for(var i = 0; i < lstMessage.length; i++){
-                    var buffer = lstMessage[i];
-                    this.handleMessage(buffer);
-                }
-            }
-        }*/
-    },
-    updateMoneyMessageResponseHandler: function(resp) {
-        /*cc.log("update money response:", resp.toObject());
-        if(resp.getResponsecode()) {
-            var money_box_treasureSpin = resp.getMoneyboxesList()[0];
-            if(resp.getMoneyboxesList().length === 1) {
-                Common.setCash(money_box_treasureSpin.getCurrentmoney());
-                this.txt_user_money.string = Common.numberFormatWithCommas(money_box_treasureSpin.getCurrentmoney());
-            } else {
-                this.prevMoney = money_box_treasureSpin.getCurrentmoney();
-                this.lastMoney = resp.getMoneyboxesList()[1].getCurrentmoney();
-                this.displayChangeMoney = resp.getMoneyboxesList()[1].getDisplaychangemoney();
-
-                Common.setCash(resp.getMoneyboxesList()[1].getCurrentmoney());
-            }
-
-        }
-        if(resp.hasMessage() && resp.getMessage() !== "") {
-
-        }*/
-    },
-
-    matchEndResponseHandler: function(resp) {
-        /*cc.log("match end response:", resp.toObject());
-        if(resp.getResponsecode()) {
-            var textEmotionId = null;
-            if(resp.getTextemoticonsList().length > 0) {
-                textEmotionId = resp.getTextemoticonsList()[0].getEmoticonid();
-            }
-            if(resp.getArgsList().length > 0) {
-                var listItem = null;
-                var lineWin = null;
-                for(var i = 0; i < resp.getArgsList().length; i++) {
-                    var entry = resp.getArgsList()[i];
-                    if(entry.getKey() == "listItem") {
-                        listItem = entry.getValue().split(", ").map(function(item) {
-                            item = parseInt(item);
-                            return item;
-                        });
-
-                    } else {
-                        if(entry.getValue() !== "")
-                            lineWin = entry.getValue().split(", ").map(function(item) {
-                                item = parseInt(item);
-                                return item;
-                            });
-                        else lineWin = [];
-
-                    }
-                }
-                if(listItem !== null && lineWin !== null) {
-
-                    cc.log("list item:", listItem);
-                    cc.log("line win:", lineWin);
-
-                    // TODO:
-
-                    this.implementSpinTreasure(textEmotionId, listItem,lineWin);
-                }
-            }
-        }
-
-        if(resp.hasMessage() && resp.getMessage() !== "") {
-
-        }*/
-    },
-
-    exitRoomResponseHandler: function(resp) {
-        /*cc.log("exit room response message: ", resp.toObject());
-        if(resp.getResponsecode()) {
-
-        }*/
-    },
-    exitZoneResponseHandler: function(resp) {
-        /*cc.log("exit zone response message:", resp.toObject());
-        if(resp.getResponsecode()) {
-            Common.setZoneId(-1);
-            cc.director.loadScene('Lobby');
-        }
-
-        if(resp.hasMessage() && resp.getMessage() !== "") {
-
-        }*/
-    },
-    jarResponseHandler: function(resp) {
-        /*cc.log("jar response message:", resp.toObject());
-        if(resp.getResponsecode()) {
-            this.isRequestJar = false;
-            var jar_type_response = 0;
-            var preJarValue = this.jarValue;
-            this.jarValue = resp.getJarvalue();
-            if (resp.getArgsList().length > 0) {
-                var entry = resp.getArgsList()[0];
-                if (entry.getKey() === "jarType") {
-                    jar_type_response = parseInt(entry.getValue().toString());
-                }
-            }
-
-            if (jar_type_response === this.betType + 1) {
-                if (this.jarType === jar_type_response) {
-                    Common.countNumberAnim(this.txt_jar_money, preJarValue, this.jarValue, 0, 1);
-                } else {
-                    this.txt_jar_money.string = Common.numberFormatWithCommas(this.jarValue);
-                }
-                this.jarType = jar_type_response;
-            }
-        }
-
-        if(resp.hasMessage() && resp.getMessage() !== "") {
-
-        }*/
+        console.log("on destroy");
     },
 
     showRewardVideo : function () {
@@ -768,6 +592,7 @@ var Treasure = cc.Class({
         if(InstantGame.getInstance().enable){
             window.showRewardedVideo(function () {
                 self.updateMoney(Config.ADS_COIN.REWARD);
+                self.animMoney(self.txt_user_money,self.oldCoin,self.coin);
             });
         }
     },
@@ -895,53 +720,6 @@ var Treasure = cc.Class({
     resetLineSelected: function () {
 
         this.lst_line_selected.clear();
-    },
-
-    handleMessage: function(buffer) {
-        /*var isDone = this._super(buffer);
-        if(isDone) {
-            return true;
-        }
-        isDone = true;
-        switch (buffer.message_id) {
-            case NetworkManager.MESSAGE_ID.UPDATE_MONEY:
-                var msg = buffer.response;
-                this.updateMoneyMessageResponseHandler(msg);
-                break;
-            case NetworkManager.MESSAGE_ID.MATCH_END:
-                this.matchEndResponseHandler(buffer.response);
-                break;
-            case NetworkManager.MESSAGE_ID.EXIT_ROOM:
-                var msg = buffer.response;
-                this.exitRoomResponseHandler(msg);
-                break;
-            case NetworkManager.MESSAGE_ID.EXIT_ZONE:
-                var msg = buffer.response;
-                this.exitZoneResponseHandler(msg);
-                break;
-            case NetworkManager.MESSAGE_ID.JAR:
-                var msg = buffer.response;
-                this.jarResponseHandler(msg);
-                break;
-            default:
-                isDone = false;
-                break;
-        }
-        return isDone;*/
-    },
-
-    openRulesPopup: function () {
-        //Common.openRules();
-    },
-    // update (dt) {},
-    showSpin: function () {
-
-        /*var tabString = ["Lịch sử quay", "Lịch sử nổ hũ", "Top cao thủ"];
-
-        Common.showPopup(Config.name.POPUP_HISTORY,function(popup) {
-            popup.addTabs(tabString, HISTORY_SPIN);
-            popup.appear();
-        });*/
     },
 
     showTopUser: function () {
