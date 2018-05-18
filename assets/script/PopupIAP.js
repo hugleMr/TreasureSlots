@@ -6,21 +6,24 @@ cc.Class({
     properties: {
         item_node : cc.Prefab,
         view : cc.Node,
+        light : cc.Node,
+        lightx : cc.Node,
+        money : cc.Label,
     },
 
     onLoad : function () {
 
         var self = this;
         const list_iap = ["0.99$","1.99$","4.99$","9.99$","19.99$","49.99$"];
-        const  list_coin = [1000,3000,8000,18000,40000,100000];
+        this.list_coin = [100,300,800,1800,4000,10000];
 
         var height = 0;
-        for(var i = 0; i < list_coin.length; i++){
+        for(var i = 0; i < this.list_coin.length; i++){
             var item = cc.instantiate(this.item_node);
             item.active = true;
 
             var coin = item.getChildByName("coin");
-            coin.getComponent(cc.Label).string = this.numberFormatWithCommas(list_coin[i]) + " coin";
+            coin.getComponent(cc.Label).string = this.numberFormatWithCommas(this.list_coin[i] * 1000) + " coin";
 
             var iap = item.getChildByName("bg_item").getChildByName("iap");
             iap.getComponent(cc.Label).string = list_iap[i];
@@ -40,10 +43,12 @@ cc.Class({
         this.initLoad();
     },
 
+    initCallBackGame : function (callback) {
+        this.callback = callback;
+    },
+
     callPayIAP : function (index) {
         var self = this;
-
-        console.log(self.catalog);
 
         if(index > self.catalog.length - 1){
             return;
@@ -52,19 +57,41 @@ cc.Class({
         var productID_name = "";
         for(var i = 0; i < self.catalog.length; i++){
             var purchaseId = self.catalog[i].productID;
-            var id_name = parseInt(purchaseId.replace("com.treasure.item",""));
+            var id_name = parseInt(purchaseId.replace("com.treasure.pack",""));
             if(id_name === index + 1){
                 productID_name = purchaseId;
                 break;
             }
-        }
+        };
 
-        console.log("productID_name : ",productID_name);
+        FBInstant.payments.purchaseAsync({
+            productID: productID_name,
+            developerPayload: 'foobar',
+        }).then(function (purchase) {
+            FBInstant.payments.consumePurchaseAsync(purchase.purchaseToken).then(function () {
+                var index = parseInt(purchase.productID.replace("com.treasure.pack",""));
+                self.callback(self.list_coin[index - 1]*1000);
 
-        FBInstant.payments.consumePurchaseAsync(productID_name).then(function () {
-            console.log("DONE DONE DONE!!!");
-        }).catch(function (err) {
-            console.log('payment: ', err.message);
+                self.light.active = true;
+                self.lightx.active = true;
+                self.money.node.active = true;
+
+                self.money.string = self.list_coin[index -1]*1000;
+                self.light.stopAllActions();
+                self.light.runAction(cc.repeatForever(cc.rotateBy(0.05,5)));
+                self.lightx.stopAllActions();
+                self.lightx.runAction(cc.repeatForever(cc.rotateBy(0.05,-2)));
+                self.light.runAction(cc.sequence(cc.delayTime(4),cc.callFunc(function () {
+                    self.light.active = false;
+                    self.lightx.active = false;
+                    self.money.node.active = false;
+                },this)));
+
+            }).catch(function(error) {
+                console.log(err.message);
+            });
+        }).catch(function(err){
+            console.log(err.message);
         });
     },
 

@@ -59,7 +59,7 @@ cc.Class({
         this.userName = "";
         this.userPhoto = "";
 
-        this.btn_reward.active = InstantGame.getInstance().checkSupport();
+        this.btn_reward.active = true;//InstantGame.getInstance().checkSupport();
 
         InstantGame.getInstance().getInfor(function (response) {
             console.log("NAME : ",response.name);
@@ -67,7 +67,6 @@ cc.Class({
 
             self.userName = response.name;
             self.userPhoto = self.userPhoto;
-
         });
 
         InstantGame.getInstance().getCoin(function (response) {
@@ -78,9 +77,11 @@ cc.Class({
 
         // this.coin = 50000;
         // this.updateMoney(0);
-        this.playMusic(this.soundMusic);
 
         this.enableSound = true;
+        this.playMusic(this.soundMusic);
+
+        this.showInviteFriends();
     },
 
     animMoney : function (obj,oldMoney,money) {
@@ -267,6 +268,7 @@ cc.Class({
                     this.showCoinAnimation();
                     var old_money = parseInt(this.txt_user_money.string);
                     InstantGame.getInstance().countNumberAnim(this.txt_user_money, old_money, this.coin, 0, 1);
+                    InstantGame.getInstance().updateContext(this.coin);
 
                     if(this.countInterstitial >= 4){
                         this.countInterstitial = 0;
@@ -274,6 +276,10 @@ cc.Class({
                             window.showInterstitialAd(function (response) {
 
                             }.bind(this));
+                        }else{
+                            if(cc.sys.isMobile) {
+                                sdkbox.PluginAdMob.show('gameover');
+                            }
                         }
                     }
 
@@ -525,8 +531,12 @@ cc.Class({
         }
     },
     getSpin: function() {
-        if(this.isRunning || this.coin <= 0){
+        if(this.isRunning){
             return;
+        }
+
+        if(this.coin <= 0){
+            this.showPopupShop();
         }
 
         this.countInterstitial ++;
@@ -594,6 +604,10 @@ cc.Class({
                 self.updateMoney(Config.ADS_COIN.REWARD);
                 self.animMoney(self.txt_user_money,self.oldCoin,self.coin);
             });
+        }else{
+            if(cc.sys.isMobile) {
+                sdkbox.PluginAdMob.show('rewarded');
+            }
         }
     },
 
@@ -615,8 +629,14 @@ cc.Class({
     },
 
     showPopupShop: function () {
+        var self = this;
         this.showPopup("PopupIAP",function (popup) {
             popup.appear();
+            popup.initCallBackGame(function (money) {
+                console.log("GAME IAP : ",money);
+                self.updateMoney(money);
+                self.animMoney(self.txt_user_money,self.oldCoin,self.coin);
+            });
         });
     },
 
@@ -729,9 +749,7 @@ cc.Class({
     },
 
     showInviteFriends : function () {
-        InstantGame.getInstance().inviteFriends(function (response) {
-            console.log("Friend id :",response.friendID);
-        });
+        InstantGame.getInstance().inviteFriends();
     },
 
     convertIntToMoneyView: function (value) {
