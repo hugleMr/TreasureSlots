@@ -205,7 +205,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 7
@@ -264,7 +264,7 @@
     },
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 1,
-    "playOnLoad": true,
+    "playOnLoad": false,
     "_autoRemoveOnFinish": false,
     "_totalParticles": 70,
     "_duration": -1,
@@ -514,7 +514,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 13
@@ -576,7 +576,7 @@
     },
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "playOnLoad": true,
+    "playOnLoad": false,
     "_autoRemoveOnFinish": false,
     "_totalParticles": 150,
     "_duration": -1,
@@ -758,7 +758,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 19
@@ -817,7 +817,7 @@
     },
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "playOnLoad": true,
+    "playOnLoad": false,
     "_autoRemoveOnFinish": false,
     "_totalParticles": 150,
     "_duration": -1,
@@ -999,7 +999,7 @@
     },
     "_children": [],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 25
@@ -1061,7 +1061,7 @@
     },
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "playOnLoad": true,
+    "playOnLoad": false,
     "_autoRemoveOnFinish": false,
     "_totalParticles": 150,
     "_duration": -1,

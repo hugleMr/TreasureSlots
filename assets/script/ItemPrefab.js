@@ -85,25 +85,32 @@ cc.Class({
         //var animation = this.node.getComponent(cc.Animation);
         //animation.play();
 
+        this.reset();
+
         switch (this.index){
             case 0:
                 this.flower.node.active = true;
+                this.flower.resetSystem();
                 break;
             case 1:
                 this.light.node.active = true;
+                this.light.resetSystem();
                 this.isRunning = true;
                 this.deltaTime = 0;
                 break;
             case 2:
                 this.light.node.active = true;
+                this.light.resetSystem();
                 this.isRunning = true;
                 this.deltaTime = 0;
                 break;
             case 3:
                 this.round_x.node.active = true;
+                this.round_x.resetSystem();
                 break;
             case 4:
                 this.light.node.active = true;
+                this.light.resetSystem();
                 this.isRunning = true;
                 this.deltaTime = 0;
                 break;
@@ -119,9 +126,11 @@ cc.Class({
                 break;
             case 7:
                 this.atom.node.active = true;
+                this.atom.resetSystem();
                 break;
             default:
                 this.flower.node.active = true;
+                this.flower.resetSystem();
                 break;
         }
     },
@@ -148,6 +157,6 @@ cc.Class({
         this.round.stopSystem();
         this.round_x.stopSystem();
 
-        this.node.stopAllActions();
+        //this.node.stopAllActions();
     }
 });

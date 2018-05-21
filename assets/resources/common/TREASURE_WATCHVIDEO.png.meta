@@ -1,0 +1,30 @@
+{
+  "ver": "1.0.0",
+  "uuid": "a5ecfa7e-b422-4d6e-bc48-50e133d5186c",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "subMetas": {
+    "TREASURE_WATCHVIDEO": {
+      "ver": "1.0.3",
+      "uuid": "bac024cc-2853-4245-9b0c-57c495ba3682",
+      "rawTextureUuid": "a5ecfa7e-b422-4d6e-bc48-50e133d5186c",
+      "trimType": "custom",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 548,
+      "height": 407,
+      "rawWidth": 548,
+      "rawHeight": 407,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
