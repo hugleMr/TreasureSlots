@@ -3625,7 +3625,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 0,
+      "width": 17,
       "height": 40
     },
     "_rotationX": 0,
@@ -3662,7 +3662,7 @@
     },
     "_isSystemFontUsed": false,
     "_spacingX": 0,
-    "_N$string": "",
+    "_N$string": "0",
     "_N$horizontalAlign": 1,
     "_N$verticalAlign": 1,
     "_N$fontFamily": "Arial",
@@ -4620,6 +4620,12 @@
     "soundMusic": {
       "__uuid__": "914a4612-602c-4b8a-a47e-17a622772682"
     },
+    "soundCoinFly": {
+      "__uuid__": "b89fcc95-dc66-4011-b79b-092d28c0aaec"
+    },
+    "board": {
+      "__id__": 6
+    },
     "board_view": {
       "__id__": 8
     },
@@ -4702,6 +4708,12 @@
     },
     "board_hide": {
       "__id__": 10
+    },
+    "bg_money_win": {
+      "__id__": 44
+    },
+    "bg_money": {
+      "__id__": 81
     },
     "isRequestJar": false
   }

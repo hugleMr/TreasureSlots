@@ -52,6 +52,55 @@
       const INTERSTITIAL_PLACEMENT_ID = "249365268940500_249365412273819";
       var preloadedRewardedVideo = null;
       var preloadedInterstitial = null;
+      const LEADER_BOARD = "TREASURE_BEST";
+      const LEADER_BOARD_CONTEXT = "TREASURE_BEST_CONTEXT.";
+
+      function getUserRank(callback) {
+          FBInstant.getLeaderboardAsync(LEADER_BOARD)
+              .then(function(leaderboard) {
+                  return leaderboard.getPlayerEntryAsync();
+              })
+              .then(function(entry) {
+                  typeof callback === 'function' && callback({
+                      rank: entry.getRank(),
+                      score: entry.getScore()
+                  });
+              });
+      }
+
+      function getAllUserRank(count,callback) {
+          FBInstant.getLeaderboardAsync(LEADER_BOARD)
+              .then(function(leaderboard) {
+                  return leaderboard.getEntriesAsync(count);
+              })
+              .then(function(entries) {
+                  console.log(' entries : ', entries);
+                  var list_rank = [];
+                  for(var i = 0; i < entries.length; i++){
+                      var user_rank = entries[i].getRank();
+                      var user_url = entries[i].getPlayer().getPhoto();
+                      var user_name = entries[i].getPlayer().getName();
+                      var user_score = entries[i].getScore();
+
+                      var user = [];
+                      console.log("rank : ",user_rank);
+                      user.push(user_rank);
+                      user.push(user_url);
+                      user.push(user_name);
+                      user.push(user_score);
+
+                      list_rank.push(user);
+                  }
+
+                  console.log("list_rank : ",list_rank.length);
+
+                  typeof callback === 'function' && callback({
+                      result: list_rank
+                  });
+              }).catch(function(err){
+              console.log('getAllUserRank failed to : ', err.message);
+          });
+      }
 
       function loadInterstitialAd() {
           var supportedAPIs = FBInstant.getSupportedAPIs();
