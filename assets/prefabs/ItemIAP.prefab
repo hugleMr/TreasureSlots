@@ -34,7 +34,7 @@
         "__id__": 15
       },
       {
-        "__id__": 16
+        "__id__": 17
       }
     ],
     "_prefab": {
@@ -463,15 +463,6 @@
     "_atlas": null
   },
   {
-    "__type__": "31e8eLajOBGp6N2u2of7Cs+",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true
-  },
-  {
     "__type__": "cc.Button",
     "_name": "",
     "_objFlags": 0,
@@ -498,7 +489,7 @@
     "zoomScale": 1.2,
     "clickEvents": [
       {
-        "__id__": 17
+        "__id__": 16
       }
     ],
     "_N$interactable": true,
@@ -532,9 +523,18 @@
     "target": {
       "__id__": 1
     },
-    "component": "ItemIAP",
+    "component": "IAPClick",
     "handler": "event",
     "customEventData": ""
+  },
+  {
+    "__type__": "31e8eLajOBGp6N2u2of7Cs+",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true
   },
   {
     "__type__": "cc.PrefabInfo",

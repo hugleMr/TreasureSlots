@@ -45,11 +45,11 @@
             "ads": {
                 "gameover": {
                     "type": "interstitial", 
-                    "id": "ca-app-pub-1329374026572143/1092476511"
+                    "id": "ca-app-pub-1329374026572143/4185543717"
                 },
                 "rewarded": {
                     "type": "rewarded_video", 
-                    "id": "ca-app-pub-1329374026572143/8251968111"
+                    "id": "ca-app-pub-1329374026572143/7991602916"
                 }
             }
         }

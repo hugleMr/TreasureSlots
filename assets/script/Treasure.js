@@ -537,6 +537,7 @@ cc.Class({
 
         if(this.coin <= 0){
             this.showPopupShop();
+            return;
         }
 
         this.countInterstitial ++;
@@ -606,7 +607,9 @@ cc.Class({
             });
         }else{
             if(cc.sys.isMobile) {
+                cc.log("show interstitial");
                 sdkbox.PluginAdMob.show('rewarded');
+                // sdkbox.PluginAdMob.show('gameover');
             }
         }
     },

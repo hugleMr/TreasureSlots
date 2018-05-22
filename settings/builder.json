@@ -5,7 +5,7 @@
   "excludeScenes": [],
   "fb-instant-games": {},
   "includeAnySDK": false,
-  "includeSDKBox": false,
+  "includeSDKBox": true,
   "inlineSpriteFrames": true,
   "inlineSpriteFrames_native": true,
   "jailbreakPlatform": false,

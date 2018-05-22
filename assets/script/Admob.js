@@ -12,7 +12,7 @@ cc.Class({
 
     admobInit: function() {
         if(cc.sys.isMobile) {
-            var self = this
+            var self = this;
             sdkbox.PluginAdMob.setListener({
                 adViewDidReceiveAd: function(name) {
                     self.showInfo('adViewDidReceiveAd name=' + name);
@@ -39,6 +39,8 @@ cc.Class({
                 }
             });
             sdkbox.PluginAdMob.init();
+            this.cacheRewarded();
+            this.cacheInterstitial();
         }
     },
 
