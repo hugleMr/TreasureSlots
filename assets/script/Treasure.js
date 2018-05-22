@@ -10,7 +10,7 @@ cc.Class({
     properties: {
         soundWinLines : [cc.AudioClip],
         soundStopSpin : cc.AudioClip,
-        soundMusic : cc.AudioClip,
+        soundBackground : cc.AudioClip,
         soundCoinFly : cc.AudioClip,
         board: cc.Node,
         board_view: cc.Mask,
@@ -32,11 +32,13 @@ cc.Class({
         btn_reward : cc.Node,
         popup_bet_select : cc.Node,
         txt_user_money: cc.Label,
+        txt_user_money_under: cc.Label,
         money_display : cc.Label,
         coin : cc.Prefab,
         mask : cc.Mask,
         board_hide : cc.Node,
         bg_money_win : cc.Node,
+        maskBoard : cc.Node,
         bg_money : cc.Node,
         isRequestJar : false,
 
@@ -72,21 +74,19 @@ cc.Class({
         InstantGame.getInstance().getCoin(function (response) {
             self.coin = response.coin;
             self.updateMoney(0);
-            self.animMoney(self.txt_user_money,0,self.coin);
+            self.getAnim().animMoney(self.txt_user_money,0,self.coin);
+            self.getAnim().animMoney(self.txt_user_money_under,0,self.coin);
         });
 
-        // this.coin = 50000;
-        // this.updateMoney(0);
+        this.coin = 500000000;
+        this.updateMoney(0);
+        self.getAnim().animMoney(self.txt_user_money,0,self.coin);
+        self.getAnim().animMoney(self.txt_user_money_under,0,self.coin);
 
         this.enableSound = true;
-        this.playMusic(this.soundMusic);
+        this.playMusic(this.soundBackground);
 
         this.showInviteFriends();
-    },
-
-    animMoney : function (obj,oldMoney,money) {
-        console.log("money : ",oldMoney);
-        InstantGame.getInstance().countNumberAnim(obj, oldMoney, money, 0, 1);
     },
 
     init: function () {
@@ -106,6 +106,7 @@ cc.Class({
         this.stepMove = 21;
         this.number = 5;
         this.betType = 0;
+        this.indexListWin = -1;
 
         this.countInterstitial = 0;
 
@@ -216,8 +217,8 @@ cc.Class({
             var coin = this.coins_anim[i];
             coin.stopAllActions();
             coin.active = true;
-            const start = cc.p(0,-this.board.height/2);
-            const end =  cc.p(0,this.board.height/2 + 50);
+            const end = cc.p(0,-this.board.height/2);
+            const start =  cc.p(0,this.board.height/2 + 50);
             const mid = cc.p(start.x + rand,(end.y - start.y)*0.5 * (Math.random()*0.5 - Math.random()*0.2));
             const bezier = [start,mid, end];
             const move1 = cc.bezierTo(Math.random() + 0.5, bezier);
@@ -255,77 +256,103 @@ cc.Class({
             this.deltaTime -= dt;
             if(this.deltaTime < 0){
                 this.deltaTime = 3;
-                if(this.countAnimate > this.list_win.length - 1){
-                    this.isComplete = false;
-                    this.isRunning = false;
-                    this.deltaTime = 0;
-                    this.countAnimate = 0;
-
-                    this.oldWinCoin = this.win_coin;
-                    this.win_coin = 0;
-                    this.updateWinMoney();
-                    this.playSound(this.soundCoinFly);
-                    this.showCoinAnimation();
-                    var old_money = parseInt(this.txt_user_money.string);
-                    InstantGame.getInstance().countNumberAnim(this.txt_user_money, old_money, this.coin, 0, 1);
-                    InstantGame.getInstance().updateContext(this.coin);
-
-                    if(this.countInterstitial >= 4){
-                        this.countInterstitial = 0;
-                        if(InstantGame.getInstance().enable){
-                            window.showInterstitialAd(function (response) {
-
-                            }.bind(this));
-                        }else{
-                            if(cc.sys.isMobile) {
-                                sdkbox.PluginAdMob.show('gameover');
-                            }
-                        }
-                    }
-
-                    return;
-                }
-                this.handleListWin(this.list_win,this.countAnimate,this.list_money[this.countAnimate]);
-
+                this.handleListWin(this.list_win,this.countAnimate);
                 this.countAnimate += 1;
+                if(this.countAnimate > this.list_win.length - 1){
+                    this.countAnimate = 0;
+                }
             }
         }
     },
 
-    handleListWin : function (listWin,index,money) {
+    showAnimWin: function () {
+        this.getAnim().showWinMoneyAndHideTitle();
+
+        var self = this;
+
+        self.win_coin = 0;
+        for(var i = 0; i < this.list_money.length; i++){
+            this.coin += this.list_money[i];
+            self.win_coin += this.list_money[i];;
+        }
+        InstantGame.getInstance().updateCoin(this.coin);
+
+        self.updateWinMoney();
+
+        var sound_random = 0;
+
+        if(this.list_win.length > 1 && this.list_win.length < 4){
+            sound_random = 1;
+        }else if(this.list_win.length >= 4 && this.list_win.length < 6){
+            sound_random = 2;
+        }else if(this.list_win.length >= 6){
+            sound_random = 3;
+        }
+
+        this.playSound(this.soundWinLines[sound_random]);
+
+        this.getAnim().showWinSprite(function () {
+
+            self.deltaTime = 0;
+            self.isComplete = true;
+            self.countAnimate = 0;
+            self.isRunning = false;
+            self.updateButtonSpin();
+
+            self.setSoundVolume(self.soundBackground,0.25);
+            self.oldWinCoin = 0;
+            self.win_coin = 0;
+            self.updateWinMoney();
+
+            self.playSound(self.soundCoinFly);
+            self.showCoinAnimation();
+
+            var old_money = parseInt(self.txt_user_money.string);
+            this.getAnim().animMoney(self.txt_user_money ,old_money,self.coin);
+            this.getAnim().animMoney(self.txt_user_money_under ,old_money,self.coin);
+
+            if(self.countInterstitial >= 4){
+                self.countInterstitial = 0;
+                if(InstantGame.getInstance().enable){
+                    window.showInterstitialAd(function (response) {
+
+                    });
+                }else{
+                    if(cc.sys.isMobile) {
+                        sdkbox.PluginAdMob.show('gameover');
+                    }
+                }
+            }
+        });
+    },
+
+
+
+    handleListWin : function (listWin,index) {
         if(listWin.length == 0){
             return;
         }
 
-        const sound_random = Math.floor(Math.random()*5);
-        this.playSound(this.soundWinLines[sound_random]);
-
-        //this.oldCoin += money;
-        //this.updateMoneyView(this.oldCoin);
-
-        this.oldWinCoin = this.win_coin;
-        this.win_coin += money;
-        this.updateWinMoney();
-
         const winABC= GameUtils.getInstance().getWinABC();
-        //const delay = index_x*2;
         const win = winABC[listWin[index] - 1];
 
-        var line = this.lst_line_result[listWin[index] - 1];
-        line.getComponent("LineResult").show(true);
-        line.getComponent("LineResult").animate();
+        const line_index = listWin[index] - 1;
+
+        for(var i = 0; i < this.lst_line_result.length; i ++){
+            if(i != line_index){
+                var line = this.lst_line_result[i];
+                line.getComponent("LineResult").reset();
+            }else{
+                var line = this.lst_line_result[line_index];
+                line.getComponent("LineResult").show(true);
+                line.getComponent("LineResult").animate();
+            }
+        }
 
         for(var j = 0; j < win.length; j++){
-            if(win[j] < 5){
-                win[j] += 10;
-            }else if(win[j] > 9){
-                win[j] -= 10;
-            }
-
             const count = this.list_item.length - 4*this.number;
 
             const k = j;
-            console.log("?>>>>>",k);
             const item = this.list_item[win[k] + count].getComponent("ItemPrefab");
 
             const p  = cc.callFunc(function (){
@@ -339,7 +366,6 @@ cc.Class({
             }.bind(this));
 
             if(index === listWin.length - 1 && j === win.length - 1){
-                console.log("?>>>>>");
                 const final = cc.callFunc(function () {
                     this.board_hide.active = false;
                 }.bind(this));
@@ -351,26 +377,8 @@ cc.Class({
         }
     },
 
-    setSoundVolume : function (soundID,volume) {
-        if(this.enableSound){
-            cc.audioEngine.setVolume(soundID,volume);
-        }
-    },
+    showWin : function (money) {
 
-    playSound : function (soundID) {
-        if(this.enableSound){
-            cc.audioEngine.play(soundID,false,1);
-        }
-    },
-
-    playMusic : function (soundID) {
-        if(this.enableSound){
-            cc.audioEngine.play(soundID,true,1);
-        }
-    },
-
-    stopMusic : function (soundID) {
-        cc.audioEngine.stop(soundID);
     },
 
     implementSpinTreasure: function (textEmotionId, listItem, listWin, listMoney) {
@@ -389,21 +397,16 @@ cc.Class({
         for(var i = 0; i < listMoney.length; i++) {
             displayChangeMoney = displayChangeMoney + listMoney[i];
         }
-        cc.log("display change money:", displayChangeMoney);
-        //TODO: displayChangeMoney: so tien thang
+
         this.resetLineResult();
-        console.log("listWin : xxx ",listWin);
+
         if(listItem.length == 0){
             return;
         }
 
-        // console.log("listItem",listItem);
-
         var list_recent_values = this.list_recent_values;
-        // console.log("list_recent_values : ",list_recent_values);
 
         var index_item = 4;
-        //this.txt_user_money.string = this.prevMoney;//this.numberFormatWithCommas(this.prevMoney);
 
         this.playSound(this.sound_spin);
 
@@ -422,11 +425,6 @@ cc.Class({
             }else if(i >= this.list_item.length - index_item*this.number && i < this.list_item.length - 1){
 
                 var index_x = i - this.list_item.length + index_item*this.number;
-                if(index_x < 5){
-                    index_x += 10;
-                }else if(index_x > 9){
-                    index_x -= 10;
-                }
                 value = list_recent_values[index_x] - 98;
             }else{
                 value = Math.floor(Math.random() * 7);
@@ -453,8 +451,6 @@ cc.Class({
             }
         }while(count < 5);
 
-        console.log("lst_time_random : ",lst_time_random);
-
         for(var i = 0; i < this.list_item.length; i++){
             var x = parseInt(i/this.number);
             var y = parseInt(i%this.number);
@@ -470,26 +466,20 @@ cc.Class({
 
             if(i == this.list_item.length - 1){
                 if(listWin.length > 0){
-                    // khi dừng hiệu ứng
+
                     var call_func = cc.callFunc(function () {
-                        // update line_result
+
                         this.board_hide.active = true;
 
                         this.list_win = listWin;
                         this.list_money = listMoney;
-                        this.deltaTime = 0;
-                        this.isComplete = true;
-                        this.countAnimate = 0;
-                        this.isRunning = true;
-                        this.updateButtonSpin();
 
-                        //this.oldCoin = this.coin;
-                        for(var i = 0; i < this.list_money.length; i++){
-                            this.coin += this.list_money[i];
+                        for(var j = 0; j < listWin.length; j ++){
+                            var line = this.lst_line_result[listWin[j] - 1];
+                            line.getComponent("LineResult").show(true);
                         }
-                        InstantGame.getInstance().updateCoin(this.coin);
 
-                        this.setSoundVolume(this.soundBackground,0.25);
+                        this.showAnimWin();
 
                     }.bind(this));
                     item.runAction(cc.sequence(delay,move1,move2,call_func));
@@ -501,8 +491,8 @@ cc.Class({
                         if(this.countInterstitial >= 4){
                             this.countInterstitial = 0;
                             InstantGame.getInstance().showInterstitialAd(function (response) {
-                                this.demo.string + "demo : xxxx :" + response.error;
-                            }.bind(this));
+
+                            });
                         }
                     }.bind(this));
                     item.runAction(cc.sequence(delay,move1,move2,call_func));
@@ -511,6 +501,28 @@ cc.Class({
                 item.runAction(cc.sequence(delay,move1,move2));
             }
         }
+    },
+
+    setSoundVolume : function (soundID,volume) {
+        if(this.enableSound){
+            cc.audioEngine.setVolume(soundID,volume);
+        }
+    },
+
+    playSound : function (soundID) {
+        if(this.enableSound){
+            cc.audioEngine.play(soundID,false,1);
+        }
+    },
+
+    playMusic : function (soundID) {
+        if(this.enableSound){
+            cc.audioEngine.play(soundID,true,1);
+        }
+    },
+
+    stopMusic : function (soundID) {
+        cc.audioEngine.stop(soundID);
     },
 
     implementDisplayChangeMoney: function(displayChangeMoney) {
@@ -554,7 +566,8 @@ cc.Class({
 
         var money = -this.moneyBet*this.lst_line_selected.length;
         this.updateMoney(money);
-        this.animMoney(this.txt_user_money,this.oldCoin,this.coin);
+        this.getAnim().animMoney(this.txt_user_money,this.oldCoin,this.coin);
+        this.getAnim().animMoney(this.txt_user_money_under,this.oldCoin,this.coin);
         InstantGame.getInstance().updateCoin(this.coin);
 
         this.implementSpinTreasure(8,listItem, lineWin, lineWinMoney);
@@ -575,18 +588,17 @@ cc.Class({
     },
 
     updateMoneyView: function (coin) {
-        //this.txt_user_money.string = this.numberFormatWithCommas(coin);
-        this.animMoney(this.txt_user_money,this.oldCoin,coin);
+        this.getAnim().animMoney(this.txt_user_money,this.oldCoin,coin);
     },
 
     updateWinMoney: function () {
-        //this.txt_win_money.string = this.numberFormatWithCommas(this.win_coin === 0 ? "" : this.win_coin);
-        this.animMoney(this.txt_win_money,this.oldWinCoin,this.win_coin);
+        this.getAnim().animMoney(this.txt_win_money,this.oldWinCoin,this.win_coin);
     },
 
     updateButtonSpin: function () {
         this.btn_spin.getComponent(cc.Sprite).spriteFrame = this.isRunning ? this.btn_spin_frames[0] : this.btn_spin_frames[1];
     },
+
     getKeyBet: function() {
         return this.betType;
     },
@@ -599,19 +611,30 @@ cc.Class({
     },
 
     showRewardVideo : function () {
+        // var self = this;
+        // if(InstantGame.getInstance().enable){
+        //     window.showRewardedVideo(function () {
+        //         self.updateMoney(Config.ADS_COIN.REWARD);
+        //         self.getAnim().animMoney(self.txt_user_money,self.oldCoin,self.coin);
+        //         self.getAnim().animMoney(self.txt_user_money_under,self.oldCoin,self.coin);
+        //     });
+        // }else{
+        //     if(cc.sys.isMobile) {
+        //         sdkbox.PluginAdMob.show('rewarded');
+        //     }
+        // }
+
         var self = this;
-        if(InstantGame.getInstance().enable){
-            window.showRewardedVideo(function () {
-                self.updateMoney(Config.ADS_COIN.REWARD);
-                self.animMoney(self.txt_user_money,self.oldCoin,self.coin);
-            });
-        }else{
-            if(cc.sys.isMobile) {
-                cc.log("show interstitial");
-                sdkbox.PluginAdMob.show('rewarded');
-                // sdkbox.PluginAdMob.show('gameover');
-            }
-        }
+        this.showPopup("PopupReward",function (popup) {
+                popup.appear();
+                popup.initCallBackGame(function () {
+                    if(InstantGame.getInstance().enable){
+                        self.updateMoney(Config.ADS_COIN.REWARD);
+                        self.getAnim().animMoney(self.txt_user_money,self.oldCoin,self.coin);
+                        self.getAnim().animMoney(self.txt_user_money_under,self.oldCoin,self.coin);
+                    }
+                });
+        });
     },
 
     chonDongTouchEvent: function () {
@@ -638,9 +661,14 @@ cc.Class({
             popup.initCallBackGame(function (money) {
                 console.log("GAME IAP : ",money);
                 self.updateMoney(money);
-                self.animMoney(self.txt_user_money,self.oldCoin,self.coin);
+                self.getAnim().animMoney(self.txt_user_money,self.oldCoin,self.coin);
+                self.getAnim().animMoney(self.txt_user_money_under,self.oldCoin,self.coin);
             });
         });
+    },
+
+    getAnim : function () {
+        return this.node.getComponent(require("TreasureAnimation"));
     },
 
     chonCuocTouchEvent: function () {
@@ -737,7 +765,6 @@ cc.Class({
         if(this.moneyBet >= 0){
             this.txt_total_bet_money.string = this.numberFormatWithCommas(this.moneyBet*count);
         }
-
     },
 
     resetLineSelected: function () {

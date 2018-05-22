@@ -7,7 +7,11 @@ cc.Class({
     },
 
     onLoad: function () {
-        this.admobInit();
+        //this.admobInit();
+    },
+
+    init : function (callback) {
+        //this.callback = callback;
     },
 
     admobInit: function() {
@@ -28,6 +32,8 @@ cc.Class({
                     if(name == "gameover"){
                         self.cacheInterstitial();
                     }else if(name == "rewarded"){
+                        //self.callback();
+
                         self.cacheRewarded();
                     }
                 },
