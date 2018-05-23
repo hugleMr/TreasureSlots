@@ -12,6 +12,7 @@ cc.Class({
     },
     
     event : function () {
+        cc.log("index:", this.index);
         this.callback(this.index);
     }
 });

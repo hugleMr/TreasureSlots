@@ -50,11 +50,11 @@ cc.Class({
 
 
     callPayIAP : function (index) {
+        console.log("index", index);
         var self = this;
-
         if(!InstantGame.getInstance().enable) {
             // TODO: here
-            cc.log("productName >> : " + customEventData + "/" + this.productNames[index]);
+            cc.log("productName >> : ", this.productNames[index]);
             if(index < this.productNames.length) {
                 sdkbox.IAP.purchase(this.productNames[index]);
             }
@@ -134,6 +134,7 @@ cc.Class({
                 onProductRequestSuccess : function (products) {
                     //Returns you the data for all the iap products
                     //You can get each item using following method
+                    cc.log("products:", products);
                     for (var i = 0; i < products.length; i++) {
                         cc.log("================");
                         cc.log("name: " + products[i].name);

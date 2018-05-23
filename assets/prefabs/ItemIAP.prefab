@@ -523,7 +523,7 @@
     "target": {
       "__id__": 1
     },
-    "component": "IAPClick",
+    "component": "ItemIAP",
     "handler": "event",
     "customEventData": ""
   },
